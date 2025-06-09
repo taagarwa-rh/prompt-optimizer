@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/taagarwa/Documents/Projects/prompt-optimizer/mlruns/0/bd7fc3771d404b74a91a9936592a4c95/artifacts
+end_time: 1749496589313
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: bd7fc3771d404b74a91a9936592a4c95
+run_name: clumsy-cow-505
+run_uuid: bd7fc3771d404b74a91a9936592a4c95
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1749496577999
+status: 4
+tags: []
+user_id: taagarwa

@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/taagarwa/Documents/Projects/prompt-optimizer/mlruns/0/326e2bd889474395a91bb534142dea39/artifacts
+end_time: 1749495905969
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 326e2bd889474395a91bb534142dea39
+run_name: amusing-stork-643
+run_uuid: 326e2bd889474395a91bb534142dea39
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1749495905953
+status: 4
+tags: []
+user_id: taagarwa

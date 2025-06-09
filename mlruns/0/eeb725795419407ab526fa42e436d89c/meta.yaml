@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/taagarwa/Documents/Projects/prompt-optimizer/mlruns/0/eeb725795419407ab526fa42e436d89c/artifacts
+end_time: 1749497070167
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: eeb725795419407ab526fa42e436d89c
+run_name: abundant-trout-786
+run_uuid: eeb725795419407ab526fa42e436d89c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1749496854094
+status: 4
+tags: []
+user_id: taagarwa
