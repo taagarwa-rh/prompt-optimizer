@@ -36,7 +36,10 @@ model_name = "qwen2.5:32b" # Or your preferred model
 client = Client(base_url="http://localhost:11434/v1", api_key="NONE")
 
 def pipeline(prompt: str, question: str, **kwargs) -> str:
-    messages = [{"role": "system", "content": prompt}, {"role": "user", "content": question}]
+    messages = [
+        {"role": "system", "content": prompt}, 
+        {"role": "user", "content": question},
+    ]
     response = client.chat.completions.create(messages=messages, model=model_name)
     result = response.choices[0].message.content.strip()
     return result
@@ -66,7 +69,13 @@ With your pipeline, metric, and dataset defined, you can build a prompt optimize
 model_name = "qwen2.5:32b" # Or your preferred model
 client = Client(base_url="http://localhost:11434/v1", api_key="NONE")
 
-optimizer = GradientOptimizer(pipeline=pipeline, metric=metric, dataset=dataset, model_name=model_name, client=client)
+optimizer = GradientOptimizer(
+    pipeline=pipeline, 
+    metric=metric, 
+    dataset=dataset, 
+    model_name=model_name, 
+    client=client
+)
 ```
 
 Once you have an optimizer defined, you can use the `optimize` method to generate new prompts based on your baseline prompt.
@@ -76,14 +85,18 @@ Here is the prompt before optimization:
 baseline_prompt = "Please answer every question the user asks to the best of your ability."
 response = pipeline(prompt=baseline_prompt, question="Who wrote 'To Kill a Mockingbird'?")
 print(response)
-# "'To Kill a Mockingbird' was written by Harper Lee. It was published in 1960 and became widely known for its portrayal of racial injustice in the American South."
+```
+```
+'To Kill a Mockingbird' was written by Harper Lee. It was published in 1960 and became widely known for its portrayal of racial injustice in the American South.
 ```
 
 Now we optimize it and view the best prompt:
 ```python
 prompts = optimizer.optimize(baseline_prompt=baseline_prompt)
 print(prompts[0].prompt)
-# Please provide only the most direct answer to the user's question without any additional information or explanation.
+```
+```
+Please provide only the most direct answer to the user's question without any additional information or explanation.
 ```
 
 Now we use the best prompt in our pipeline:
@@ -91,7 +104,9 @@ Now we use the best prompt in our pipeline:
 new_prompt = prompts[0].prompt
 response = pipeline(prompt=new_prompt, question="Who wrote 'To Kill a Mockingbird'?")
 print(response)
-# "Harper Lee"
+```
+```
+Harper Lee
 ```
 
 
