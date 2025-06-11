@@ -1,6 +1,6 @@
 # Prompt Optimizer
 
-Optimize your prompts with gradient prompt tuning.
+Optimize your prompts with gradient prompt tuning. Based on the paper [Automatic Prompt Optimization with “Gradient Descent” and Beam Search](https://arxiv.org/pdf/2305.03495).
 
 ## Setup
 
@@ -8,9 +8,9 @@ See the [example](./examples/simple_optimize.py) for an sample pipeline setup.
 
 There are three key components you need to define in order to execute the optimizer:
 
-1. Dataset - your test cases
-2. Pipeline - a function that executes your AI pipeline
-3. Metric - a function that scores outputs from your pipeline
+1. [Dataset](#1-dataset) - your test cases
+2. [Pipeline](#2-pipeline) - a function that executes your AI pipeline
+3. [Metric](#3-metric) - a function that scores outputs from your pipeline
 
 ### 1. Dataset
 A pandas DataFrame of test cases. Can include any columns, but generally it will include a column for input and a column for output (e.g. question and answer).
@@ -66,10 +66,21 @@ def metric(prediction: str, question: str, answer: str, **kwargs) -> dict:
 With your pipeline, metric, and dataset defined, you can build a prompt optimizer. We are passing an OpenAI client pointing to Ollama locally to use as our prompt optimizer.
 
 ```python
+from prompt_optimizer.optimizers import GradientOptimizer, StructuredGradientOptimizer
+
 model_name = "qwen2.5:32b" # Or your preferred model
 client = Client(base_url="http://localhost:11434/v1", api_key="NONE")
 
 optimizer = GradientOptimizer(
+    pipeline=pipeline, 
+    metric=metric, 
+    dataset=dataset, 
+    model_name=model_name, 
+    client=client
+)
+
+# Or for more stable outputs
+optimizer = StructuredGradientOptimizer(
     pipeline=pipeline, 
     metric=metric, 
     dataset=dataset, 
