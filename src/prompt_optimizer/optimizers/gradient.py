@@ -11,7 +11,7 @@ from .base import BaseOptimizer, MetricResult, PromptResult
 
 logger = logging.getLogger(__name__)
 
-GRADIENT_PROMPT = """I'm trying to write a zero-shot classifier prompt for metadata extraction.
+GRADIENT_PROMPT = """I'm trying to write a zero-shot classifier prompt.
 My current prompt is:
 "{prompt}"
 But this prompt gets the following examples wrong:
@@ -21,7 +21,7 @@ have gotten these examples wrong.
 Wrap each reason with <START> and <END>"""
 
 
-REWRITE_PROMPT = """I'm trying to write a zero-shot classifier prompt for metadata extraction.
+REWRITE_PROMPT = """I'm trying to write a zero-shot classifier prompt.
 My current prompt is:
 "{prompt}"
 But it gets the following examples wrong:
@@ -168,7 +168,7 @@ class GradientOptimizer(BaseOptimizer):
                 yield new_prompt
     
     
-    def optimize(self, baseline_prompt: str, max_iters: int = 3, score_threshold: float = None, **kwargs) -> list[PromptResult]:
+    def optimize(self, baseline_prompt: str, max_iters: int = 3, score_threshold: float = None, prune: bool = False, **kwargs) -> list[PromptResult]:
         """Optimize a prompt.
 
         Args:
@@ -180,6 +180,8 @@ class GradientOptimizer(BaseOptimizer):
             score_threshold (float, optional): 
                 If the score for any prompt exceeds this score, stop the iterations immedately. If not specified, new prompts will continue to be generated
                 for any prompt not scoring over 1.0.
+            prune (bool, optional):
+                If True, prune any new prompts that do not meet or exceed their base prompt's score. Defaults to False.
 
         Returns:
             list[PromptResult]: List of prompt results, including scores and error strings for the prompts.
@@ -197,6 +199,7 @@ class GradientOptimizer(BaseOptimizer):
         logger.info("Starting iterations")
         for i in range(max_iters):
             new_prompts = []
+            logger.info(f"Iteration {i} - {len(prev_prompts)} prompts will be iterated")
             for j, prompt in enumerate(prev_prompts):
                 # Skip the prompt if it's already perfect
                 if prompt.score >= 1.0:
@@ -211,9 +214,14 @@ class GradientOptimizer(BaseOptimizer):
                     metric_result = self._evalute(predictions=predictions)
                     prompt_result = PromptResult(prompt=new_prompt, score=metric_result.score, error_string=metric_result.error_string)
                     logger.info(f"Iteration {i} - Prompt {j} - New Prompt {k} - Score: {prompt_result.score:2f}")
-                    
-                    prompt_results.append(prompt_result)
-                    new_prompts.append(prompt_result)
+                    # Check if we should prune this prompt
+                    if prune:
+                        if prompt_result.score >= prompt.score:
+                            prompt_results.append(prompt_result)
+                            new_prompts.append(prompt_result)
+                    else:
+                        prompt_results.append(prompt_result)
+                        new_prompts.append(prompt_result)
                     # Stop the iterations if we've found a prompt that beats the score_threshold
                     if score_threshold is not None and any(prompt.score >= score_threshold for prompt in prompt_results):
                         return sorted(prompt_results, key=lambda x: x.score, reverse=True)
