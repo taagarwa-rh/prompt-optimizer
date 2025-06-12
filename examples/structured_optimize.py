@@ -21,22 +21,26 @@ dataset = pd.DataFrame(data)
 # 3. Define your pipeline. This should take prompt and a row from your dataset as kwargs and produce an output (e.g., a string response).
 def pipeline(prompt: str, question: str, **kwargs) -> str:
     messages = [{"role": "system", "content": prompt}, {"role": "user", "content": question}]
-    response = client.chat.completions.create(messages=messages, model=model_name)
+    response = client.chat.completions.create(messages=messages, model=model_name, temperature=0.1, seed=42)
     result = response.choices[0].message.content.strip()
     return result
 
-# 4. Define your metric function. This should take a prediction (a pipeline output) and a corresponding row from your dataset as kwargs and produce a dictionary, 
-# with a score <= 1 and an error_string explaining what it got wrong. This metric checks for an exact match between the predicted and actual answer.
-def metric(prediction: str, question: str, answer: str, **kwargs) -> dict:
-    if answer == prediction:
-        score = 1
-        error_string = None
-    else:
-        score = 0
-        error_string = f"Failed to answer the question: {question}\nPredicted: {prediction}\nActual: {answer}"
+# 4. Define your metric function. This should take the predictions (pipeline outputs) and other columns from your dataset as kwargs and produce a dictionary, 
+# with a score and an error_string explaining what it got wrong. This metric checks for an exact match between the predicted and actual answer.
+def metric(predictions: list[str], question: list[str], answer: list[str], **kwargs) -> dict:
+    score = 0.0
+    errors = []
+    for i, prediction in enumerate(predictions):
+        actual = answer[i]
+        ques = question[i]
+        if actual == prediction:
+            score += 1
+        else:
+            score += 0
+            errors.append(f"Failed to answer the question: {ques}\nPredicted: {prediction}\nActual: {actual}")
     return {
         "score": score,
-        "error_string": error_string
+        "error_string": "\n\n".join(errors) if errors else None
     }
 
 # 5. Define your Optimizer, requires a pipeline, metric, dataset, and a model name. 
@@ -49,8 +53,8 @@ response = pipeline(prompt=baseline_prompt, question="Who wrote 'To Kill a Mocki
 print(response)
 # "'To Kill a Mockingbird' was written by Harper Lee. It was published in 1960 and became widely known for its portrayal of racial injustice in the American South."
 
-# 7. Optimize your baseline prompt
-prompts = optimizer.optimize(baseline_prompt=baseline_prompt, score_threshold=1.0)
+# 7. Optimize your baseline prompt. Set a depth of 1 since this is a simple task and should converge quickly.
+prompts = optimizer.optimize(baseline_prompt=baseline_prompt, depth=1)
 
 # 8. View the newly created prompts (they are automatically sorted by score)
 print("--- PROMPTS ---")

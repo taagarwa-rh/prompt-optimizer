@@ -1,6 +1,6 @@
 # Prompt Optimizer
 
-Optimize your prompts with gradient prompt tuning. Based on the paper [Automatic Prompt Optimization with “Gradient Descent” and Beam Search](https://arxiv.org/pdf/2305.03495).
+Optimize your prompts with gradient prompt tuning.
 
 ## Setup
 
@@ -27,7 +27,7 @@ dataset = pd.DataFrame(data)
 ```
 
 ### 2. Pipeline
-A function that takes a prompt and a row from your dataset as kwargs and produces an output (e.g., a string response). We are using an OpenAI client that pings Ollama locally to make our completions, but you can use any logic here to produce your output (e.g. RAG, structured output, classifier, etc.).
+A function that takes a prompt and a single row from your dataset as kwargs and produces an output (e.g., a string response). We are using an OpenAI client that pings Ollama locally to make our completions, but you can use any logic here to produce your output (e.g. RAG, structured output, classifier, etc.).
 
 ```python
 from openai import Client
@@ -46,24 +46,28 @@ def pipeline(prompt: str, question: str, **kwargs) -> str:
 ```
 
 ### 3. Metric
-A function that takes a prediction (a pipeline output) and a corresponding row from your dataset as kwargs and produce a dictionary, with a score <= 1 and an error_string explaining what it got wrong.
+A function that takes a list of prediction (pipeline outputs) and other columns from your dataset as kwargs and returns a dictionary, with a score and an error_string explaining what the predictions got wrong.
 
 ```python
-def metric(prediction: str, question: str, answer: str, **kwargs) -> dict:
-    if answer == prediction:
-        score = 1
-        error_string = None
-    else:
-        score = 0
-        error_string = f"Failed to answer the question: {question}\nPredicted: {prediction}\nActual: {answer}"
+def metric(predictions: list[str], question: list[str], answer: list[str], **kwargs) -> dict:
+    score = 0.0
+    errors = []
+    for i, prediction in enumerate(predictions):
+        actual = answer[i]
+        ques = question[i]
+        if actual == prediction:
+            score += 1
+        else:
+            score += 0
+            errors.append(f"Failed to answer the question: {ques}\nPredicted: {prediction}\nActual: {actual}")
     return {
         "score": score,
-        "error_string": error_string
+        "error_string": "\n\n".join(errors) if errors else None
     }
 ```
 
 ## Usage
-With your pipeline, metric, and dataset defined, you can build a prompt optimizer. We are passing an OpenAI client pointing to Ollama locally to use as our prompt optimizer.
+With your pipeline, metric, and dataset defined, you can build a prompt optimizer. We are passing an OpenAI client pointing to Ollama locally to use for generating new prompts. The `GradientOptimizer` and `StructuredGradientOptimizer` are based on the paper [Automatic Prompt Optimization with “Gradient Descent” and Beam Search](https://arxiv.org/pdf/2305.03495).
 
 ```python
 from prompt_optimizer.optimizers import GradientOptimizer, StructuredGradientOptimizer
@@ -123,5 +127,5 @@ Harper Lee
 
 ## Roadmap
 
-- [ ] MLFlow integration for metric tracking and more
-- [ ] In depth reporting on intermediate prompts and results
+- [ ] AgentPrompt Optimizer from [arXiv](https://arxiv.org/pdf/2310.16427)
+- [ ] APE Optimizer from [arXiv](https://arxiv.org/abs/2211.01910)
