@@ -1,4 +1,4 @@
-"""Gradient prompt tuning based on the paper: https://arxiv.org/pdf/2305.03495."""
+"""ProTeGi with Successive Rejects based on the paper: https://arxiv.org/pdf/2305.03495."""
 
 import logging
 import re
@@ -203,9 +203,11 @@ class GradientOptimizer(BaseOptimizer):
         Each iteration will produce at most num_feedbacks * steps_per_gradient new prompts per prompt generated in the previous iteration.
         For example, if num_feedbacks is 3 and steps_per_gradient is 3, then the first iteration will produce 9 new prompts.
 
-        If search_mode is "beam", the only the best prompt from each feedback is kept and the rest discarded.
-        For the above example, 3 prompts would be kept from the first iteration and the second iteration would produce at most
-        27 new prompts (3 prompts * 3 num_feedbacks * 3 steps_per_gradient).
+        If search_mode is "beam", the only the best prompt from each iteration is kept and the rest discarded.
+        For the above example, 1 prompt would be kept from the first iteration and the second iteration would produce at most
+        9 new prompts (1 prompts * 3 num_feedbacks * 3 steps_per_gradient).
+        Setting num_feedbacks to 1 and steps_per_gradient to 1 would result in a monte carlo simulation where each iteration
+        produces one feedback and one new prompt.
 
         If search_mode is "greedy", all prompts from the previous iteration are kept.
         For the above example, 9 prompts would be kept from the first iteration and the second iteration would produce at most
