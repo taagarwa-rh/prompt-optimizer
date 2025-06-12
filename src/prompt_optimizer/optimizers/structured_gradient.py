@@ -1,4 +1,4 @@
-"""Gradient prompt tuning based on the paper: https://arxiv.org/pdf/2305.03495"""
+"""Gradient prompt tuning with structured outputs based on the paper: https://arxiv.org/pdf/2305.03495."""
 
 import logging
 from typing import Generator
@@ -36,10 +36,14 @@ Respond using JSON only."""
 
 
 class GradientResponse(BaseModel):
+    """Gradient response model."""
+
     feedbacks: list[str]
 
 
 class RewriteResponse(BaseModel):
+    """Rewrite response model."""
+
     prompts: list[str]
 
 
@@ -47,16 +51,18 @@ class StructuredGradientOptimizer(GradientOptimizer):
     """A more stable version of the GradientOptimizer using structured generation."""
 
     def _generate(self, prompt_template: str, template_kwargs: dict, response_format: BaseModel, **kwargs) -> list[str]:
-        """Generate a completion for a given template and kwargs and parse the results.
+        """
+        Generate a completion for a given template and kwargs and parse the results.
 
         Args:
             prompt_template (str): Template for the prompt.
             template_kwargs (dict): Key word arguments to fill the template values.
             response_format (BaseModel): Pydantic model for LLM response structure.
-            kwargs: Additional kwargs to pass to the OpenAI client.completions.create (e.g. temperature)
+            kwargs: Additional kwargs to pass to the openai.client.completions.parse (e.g. temperature)
 
         Returns:
             list[str]: The parsed generation results.
+
         """
         prompt = prompt_template.format(**template_kwargs)
         messages = [{"role": "user", "content": prompt}]
@@ -68,14 +74,17 @@ class StructuredGradientOptimizer(GradientOptimizer):
         return responses
 
     def _generate_new_prompts(self, prompt: str, error_string: str, **kwargs) -> Generator[str, None, None]:
-        """Generate a number of new prompts based on the given prompt and error string.
+        """
+        Generate a number of new prompts based on the given prompt and error string.
 
         Args:
             prompt (str): Prompt to generate new prompts off of.
             error_string (str): Description of the errors with the `prompt`.
+            kwargs: Additional kwargs to pass to the openai.client.completions.parse (e.g. temperature)
 
         Returns:
             Generator[str]: New prompts that attempt to correct the errors presented in `error_string`.
+
         """
         template_kwargs = {
             "prompt": prompt,

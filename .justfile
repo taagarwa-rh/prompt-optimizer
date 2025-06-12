@@ -13,4 +13,4 @@ format:
 
 # Lints Code
 lint *options:
-    poetry run ruff check ai_readiness {{ options }}
+    poetry run ruff check src {{ options }}
