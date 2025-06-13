@@ -12,31 +12,22 @@ from .base import BaseOptimizer, MetricResult, PromptResult
 logger = logging.getLogger(__name__)
 
 GRADIENT_PROMPT = """I'm trying to write a zero-shot classifier prompt.
-
 My current prompt is:
 "{prompt}"
-
 But this prompt gets the following examples wrong:
 {error_string}
+give {num_feedbacks} reasons why the prompt could
+have gotten these examples wrong.
+Respond using JSON only."""
 
-give {num_feedbacks} reasons why the prompt could have gotten these examples wrong.
-Wrap each reason with <START> and <END>"""
-
-
-REWRITE_PROMPT = """I'm trying to write a zero-shot classifier.
-
+REWRITE_PROMPT = """I'm trying to write a zero-shot classifier prompt.
 My current prompt is:
 "{prompt}"
-
 But it gets the following examples wrong:
 {error_string}
-
 Based on these examples the problem with this prompt is that {gradient}
-
-Based on the above information, I wrote {steps_per_gradient} different improved prompts.
-Each prompt is wrapped with <START> and <END>.
-The {steps_per_gradient} new prompts are:
-"""
+Based on the above information, write {steps_per_gradient} different improved prompts.
+Respond using JSON only."""
 
 PipelineOutputType = Any
 
