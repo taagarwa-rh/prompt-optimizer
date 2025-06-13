@@ -276,8 +276,9 @@ class GradientOptimizer(BaseOptimizer):
                 new_prompts.extend(filtered_prompt_results)
 
             # Log the top score from this iteration
-            minibatch_best_score = max(minibatch_prompt_results, key=lambda x: x.score)
-            logger.info(f"Iteration {i + 1} - Best score: {minibatch_best_score.score:.4f}")
+            batch_best_prompt = max(new_prompts, key=lambda x: x.score)
+            logger.info(f"Iteration {i + 1} - Best score: {batch_best_prompt.score:.4f}")
+            logger.info(f"Iteration {i + 1} - Best prompt: {batch_best_prompt.score:.4f}")
 
             # Initalize the next iteration with the new prompts
             prompts = new_prompts
