@@ -250,7 +250,7 @@ class GradientOptimizer(BaseOptimizer):
                 # Otherwise generate a minibatch of new prompts and evaluate them
                 logger.info(f"Iteration {i + 1} - Minibatch {j + 1} - Generating new prompts")
                 k = 0
-                minibatch_prompt_results = []
+                minibatch_prompt_results = [prompt]
                 for new_prompt in self._generate_new_prompts(prompt=prompt.prompt, error_string=prompt.error_string, **kwargs):
                     logger.info(f"Iteration {i + 1} - Minibatch {j + 1} - New Prompt {k + 1} - Evaluating new prompt")
                     predictions = self._predict(prompt=new_prompt)
