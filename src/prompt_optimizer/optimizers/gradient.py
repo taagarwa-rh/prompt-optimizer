@@ -45,8 +45,6 @@ class GradientOptimizer(BaseOptimizer):
         dataset: pd.DataFrame,
         model_name: str,
         client: Client = None,
-        num_feedbacks: int = 3,
-        steps_per_gradient: int = 3,
     ):
         """
         Initialize GradientOptimizer.
@@ -64,10 +62,6 @@ class GradientOptimizer(BaseOptimizer):
                 Name of the LLM at the endpoint to use to generate gradients and new prompts.
             client (openai.Client, optional):
                 OpenAI client to use for generating gradients and new prompts. If not specified, a default one will be created for you.
-            num_feedbacks (int, optional):
-                Number of feedbacks (gradients) to generate for each prompt. This won't be enforced and the LLM may generate more or less than this. Defaults to 3.
-            steps_per_gradient (int, optional):
-                Number of steps (new prompts) to generate per gradient. This won't be enforced and the LLM may generate more or less than this. Defaults to 3.
 
         """
         self.pipeline = pipeline
@@ -75,8 +69,6 @@ class GradientOptimizer(BaseOptimizer):
         self.dataset = dataset.copy()
         self.model_name = model_name
         self.client = client if client is not None else Client()
-        self.num_feedbacks = num_feedbacks
-        self.steps_per_gradient = steps_per_gradient
 
     def _predict(self, prompt: str) -> Iterable[PipelineOutputType]:
         """
@@ -148,13 +140,19 @@ class GradientOptimizer(BaseOptimizer):
         responses = self._extract_responses(raw_text)
         return responses
 
-    def _generate_new_prompts(self, prompt: str, error_string: str, **kwargs) -> Generator[str, None, None]:
+    def _generate_new_prompts(self, prompt: str, error_string: str, num_feedbacks: int, steps_per_gradient: int, **kwargs) -> Generator[str, None, None]:
         """
         Generate a number of new prompts based on the given prompt and error string.
 
         Args:
-            prompt (str): Prompt to generate new prompts off of.
-            error_string (str): Description of the errors with the `prompt`.
+            prompt (str): 
+                Prompt to generate new prompts off of.
+            error_string (str): 
+                Description of the errors with the `prompt`.
+            num_feedbacks (int, optional):
+                Number of feedbacks (gradients) to generate for each prompt. This won't be enforced and the LLM may generate more or less than this.
+            steps_per_gradient (int, optional):
+                Number of steps (new prompts) to generate per gradient. This won't be enforced and the LLM may generate more or less than this.
             kwargs: Additional kwargs to pass to the OpenAI client.completions.create (e.g. temperature)
 
         Returns:
@@ -164,15 +162,15 @@ class GradientOptimizer(BaseOptimizer):
         template_kwargs = {
             "prompt": prompt,
             "error_string": error_string,
-            "num_feedbacks": self.num_feedbacks,
-            "steps_per_gradient": self.steps_per_gradient,
+            "num_feedbacks": num_feedbacks,
+            "steps_per_gradient": steps_per_gradient,
         }
         gradients = self._generate(prompt_template=GRADIENT_PROMPT, template_kwargs=template_kwargs, **kwargs)
-        gradients = gradients[: self.num_feedbacks]
+        gradients = gradients[: num_feedbacks]
         for gradient in gradients:
             template_kwargs.update({"gradient": gradient})
             new_prompts = self._generate(prompt_template=REWRITE_PROMPT, template_kwargs=template_kwargs, **kwargs)
-            new_prompts = new_prompts[: self.steps_per_gradient]
+            new_prompts = new_prompts[: steps_per_gradient]
             for new_prompt in new_prompts:
                 yield new_prompt
 
@@ -187,7 +185,14 @@ class GradientOptimizer(BaseOptimizer):
             return [best_prompt]
 
     def optimize(
-        self, baseline_prompt: str, depth: int = 3, score_threshold: float = None, search_mode: Literal["greedy", "beam"] = "beam", **kwargs
+        self,
+        baseline_prompt: str,
+        num_feedbacks: int = 3,
+        steps_per_gradient: int = 3,
+        depth: int = 3,
+        score_threshold: float = None,
+        search_mode: Literal["greedy", "beam"] = "beam",
+        **kwargs,
     ) -> list[PromptResult]:
         """
         Optimize a prompt.
@@ -208,7 +213,12 @@ class GradientOptimizer(BaseOptimizer):
         81 new prompts (9 prompts * 3 num_feedbacks * 3 steps_per_gradient).
 
         Args:
-            baseline_prompt (str): Starting prompt to optimize.
+            baseline_prompt (str):
+                Starting prompt to optimize.
+            num_feedbacks (int, optional):
+                Number of feedbacks (gradients) to generate for each prompt. This won't be enforced and the LLM may generate more or less than this. Defaults to 3.
+            steps_per_gradient (int, optional):
+                Number of steps (new prompts) to generate per gradient. This won't be enforced and the LLM may generate more or less than this. Defaults to 3.
             depth (int, optional):
                 Maxium number of iterations of generating new prompts from gradients.
                 Each iteration will produce (at most) num_feedbacks * steps_per_gradient prompts per prompt generated in the previous iteration.
@@ -251,7 +261,8 @@ class GradientOptimizer(BaseOptimizer):
                 logger.info(f"Iteration {i + 1} - Minibatch {j + 1} - Generating new prompts")
                 k = 0
                 minibatch_prompt_results = [prompt]
-                for new_prompt in self._generate_new_prompts(prompt=prompt.prompt, error_string=prompt.error_string, **kwargs):
+                prompt_generator = self._generate_new_prompts(prompt=prompt.prompt, error_string=prompt.error_string, num_feedbacks=num_feedbacks, steps_per_gradient=steps_per_gradient, **kwargs)
+                for new_prompt in prompt_generator:
                     logger.info(f"Iteration {i + 1} - Minibatch {j + 1} - New Prompt {k + 1} - Evaluating new prompt")
                     predictions = self._predict(prompt=new_prompt)
                     metric_result = self._evalute(predictions=predictions)

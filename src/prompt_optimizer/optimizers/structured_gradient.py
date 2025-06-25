@@ -66,14 +66,20 @@ class StructuredGradientOptimizer(GradientOptimizer):
         responses = response_model.feedbacks if hasattr(response_model, "feedbacks") else response_model.prompts
         return responses
 
-    def _generate_new_prompts(self, prompt: str, error_string: str, **kwargs) -> Generator[str, None, None]:
+    def _generate_new_prompts(self, prompt: str, error_string: str, num_feedbacks: int, steps_per_gradient: int, **kwargs) -> Generator[str, None, None]:
         """
         Generate a number of new prompts based on the given prompt and error string.
 
         Args:
-            prompt (str): Prompt to generate new prompts off of.
-            error_string (str): Description of the errors with the `prompt`.
-            kwargs: Additional kwargs to pass to the openai.client.completions.parse (e.g. temperature)
+            prompt (str): 
+                Prompt to generate new prompts off of.
+            error_string (str): 
+                Description of the errors with the `prompt`.
+            num_feedbacks (int, optional):
+                Number of feedbacks (gradients) to generate for each prompt. This won't be enforced and the LLM may generate more or less than this.
+            steps_per_gradient (int, optional):
+                Number of steps (new prompts) to generate per gradient. This won't be enforced and the LLM may generate more or less than this.
+            kwargs: Additional kwargs to pass to the OpenAI client.completions.create (e.g. temperature)
 
         Returns:
             Generator[str]: New prompts that attempt to correct the errors presented in `error_string`.
@@ -82,18 +88,18 @@ class StructuredGradientOptimizer(GradientOptimizer):
         template_kwargs = {
             "prompt": prompt,
             "error_string": error_string,
-            "num_feedbacks": self.num_feedbacks,
-            "steps_per_gradient": self.steps_per_gradient,
+            "num_feedbacks": num_feedbacks,
+            "steps_per_gradient": steps_per_gradient,
         }
         gradients = self._generate(
             prompt_template=GRADIENT_PROMPT, template_kwargs=template_kwargs, response_format=GradientResponse, **kwargs
         )
-        gradients = gradients[: self.num_feedbacks]
+        gradients = gradients[: num_feedbacks]
         for gradient in gradients:
             template_kwargs.update({"gradient": gradient})
             new_prompts = self._generate(
                 prompt_template=REWRITE_PROMPT, template_kwargs=template_kwargs, response_format=RewriteResponse, **kwargs
             )
-            new_prompts = new_prompts[: self.steps_per_gradient]
+            new_prompts = new_prompts[: steps_per_gradient]
             for new_prompt in new_prompts:
                 yield new_prompt
