@@ -25,27 +25,27 @@ def pipeline(prompt: str, question: str, **kwargs) -> str:
     result = response.choices[0].message.content.strip()
     return result
 
-# 4. Define your metric function. This should take the predictions (pipeline outputs) and other columns from your dataset as kwargs and produce a dictionary, 
-# with a score and an error_string explaining what it got wrong. This metric checks for an exact match between the predicted and actual answer.
-def metric(predictions: list[str], question: list[str], answer: list[str], **kwargs) -> dict:
-    score = 0.0
+# 4. Define your reward function. This should take the predictions (pipeline outputs) and other columns from your dataset as kwargs and produce a dictionary, 
+# with a reward and an error_string explaining what it got wrong. This function rewards exact matches between the predicted and actual answer.
+def reward_func(predictions: list[str], question: list[str], answer: list[str], **kwargs) -> dict:
+    reward = 0.0
     errors = []
     for i, prediction in enumerate(predictions):
         actual = answer[i]
         ques = question[i]
         if actual == prediction:
-            score += 1
+            reward += 1
         else:
-            score += 0
+            reward += 0
             errors.append(f"Failed to answer the question: {ques}\nPredicted: {prediction}\nActual: {actual}")
     return {
-        "score": score,
+        "reward": reward,
         "error_string": "\n\n".join(errors) if errors else None
     }
 
-# 5. Define your Optimizer, requires a pipeline, metric, dataset, and a model name. 
+# 5. Define your Optimizer, requires a pipeline, reward_func, dataset, and a model name. 
 # We are passing an OpenAI client as well so we can use Ollama locally.
-optimizer = StructuredGradientOptimizer(pipeline=pipeline, metric=metric, dataset=dataset, model_name=model_name, client=client)
+optimizer = StructuredGradientOptimizer(pipeline=pipeline, reward_func=reward_func, dataset=dataset, model_name=model_name, client=client)
 
 # 6. Demonstrate the baseline prompt
 baseline_prompt = "Please answer every question the user asks to the best of your ability."
@@ -56,15 +56,15 @@ print(response)
 # 7. Optimize your baseline prompt. Set a depth of 1 since this is a simple task and should converge quickly.
 prompts = optimizer.optimize(baseline_prompt=baseline_prompt, depth=1)
 
-# 8. View the newly created prompts (they are automatically sorted by score)
+# 8. View the newly created prompts (they are automatically sorted by reward)
 print("--- PROMPTS ---")
 for i, prompt in enumerate(prompts):
     print(f"# Prompt {i+1}")
-    print("Score:", prompt.score)
+    print("Reward:", prompt.reward)
     print("Prompt:", prompt.prompt)
     
 # # Prompt 1
-# Score: 1.0
+# Reward: 1.0
 # Prompt: Answer each question with a precise response without additional context or explanation.
 
 # 9. Demonstrate the effectiveness of the new prompt

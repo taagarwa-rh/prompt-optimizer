@@ -1,6 +1,6 @@
 # Prompt Optimizer
 
-Optimize your prompts with gradient prompt tuning.
+Optimize your prompts using Reinforcement Learning.
 
 ## Setup
 
@@ -10,7 +10,7 @@ There are three key components you need to define in order to execute the optimi
 
 1. [Dataset](#1-dataset) - your test cases
 2. [Pipeline](#2-pipeline) - a function that executes your AI pipeline
-3. [Metric](#3-metric) - a function that scores outputs from your pipeline
+3. [Reward Function](#3-reward-function) - a function that rewards outputs from your pipeline and collects errors
 
 ### 1. Dataset
 A pandas DataFrame of test cases. Can include any columns, but generally it will include a column for input and a column for output (e.g. question and answer).
@@ -45,29 +45,29 @@ def pipeline(prompt: str, question: str, **kwargs) -> str:
     return result
 ```
 
-### 3. Metric
-A function that takes a list of prediction (pipeline outputs) and other columns from your dataset as kwargs and returns a dictionary, with a score and an error_string explaining what the predictions got wrong.
+### 3. Reward Function
+A function that takes a list of prediction (pipeline outputs) and other columns from your dataset as kwargs and returns a dictionary, with a reward and an error_string explaining what the predictions got wrong.
 
 ```python
-def metric(predictions: list[str], question: list[str], answer: list[str], **kwargs) -> dict:
-    score = 0.0
+def reward_func(predictions: list[str], question: list[str], answer: list[str], **kwargs) -> dict:
+    reward = 0.0
     errors = []
     for i, prediction in enumerate(predictions):
         actual = answer[i]
         ques = question[i]
         if actual == prediction:
-            score += 1
+            reward += 1
         else:
-            score += 0
+            rewards += 0
             errors.append(f"Failed to answer the question: {ques}\nPredicted: {prediction}\nActual: {actual}")
     return {
-        "score": score,
+        "reward": reward,
         "error_string": "\n\n".join(errors) if errors else None
     }
 ```
 
 ## Usage
-With your pipeline, metric, and dataset defined, you can build a prompt optimizer. We are passing an OpenAI client pointing to Ollama locally to use for generating new prompts. The `GradientOptimizer` and `StructuredGradientOptimizer` are based on the paper [Automatic Prompt Optimization with “Gradient Descent” and Beam Search](https://arxiv.org/pdf/2305.03495).
+With your pipeline, reward function, and dataset defined, you can build a prompt optimizer. We are passing an OpenAI client pointing to Ollama locally to use for generating new prompts. The `GradientOptimizer` and `StructuredGradientOptimizer` are based on the paper [Automatic Prompt Optimization with “Gradient Descent” and Beam Search](https://arxiv.org/pdf/2305.03495).
 
 ```python
 from prompt_optimizer.optimizers import GradientOptimizer, StructuredGradientOptimizer
@@ -77,7 +77,7 @@ client = Client(base_url="http://localhost:11434/v1", api_key="NONE")
 
 optimizer = GradientOptimizer(
     pipeline=pipeline, 
-    metric=metric, 
+    reward, 
     dataset=dataset, 
     model_name=model_name, 
     client=client
@@ -86,7 +86,7 @@ optimizer = GradientOptimizer(
 # Or for more stable outputs
 optimizer = StructuredGradientOptimizer(
     pipeline=pipeline, 
-    metric=metric, 
+    reward_func=reward_func, 
     dataset=dataset, 
     model_name=model_name, 
     client=client
@@ -127,5 +127,7 @@ Harper Lee
 
 ## Roadmap
 
+- [ ] Add sample pipelines and metrics
+- [ ] Improve stability of default prompts
 - [ ] AgentPrompt Optimizer from [arXiv](https://arxiv.org/pdf/2310.16427)
 - [ ] APE Optimizer from [arXiv](https://arxiv.org/abs/2211.01910)
