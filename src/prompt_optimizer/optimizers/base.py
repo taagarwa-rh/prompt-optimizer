@@ -3,19 +3,26 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from .types import PipelineOutputType, Prompt, Reward
 
-class MetricResult(BaseModel):
-    """Metric result model."""
 
-    score: float | int
+class RewardFuncResult(BaseModel):
+    """Reward function result model."""
+
+    reward: Reward
     error_string: Optional[str] = None
 
 
 class PromptResult(BaseModel):
     """Prompt result model."""
 
-    prompt: str
-    score: float | int
+    id: int
+    step: int
+    parent_id: Optional[int] = None
+    gradient: Optional[str] = None
+    prompt: Prompt
+    predictions: list[PipelineOutputType]
+    reward: Reward
     error_string: Optional[str] = None
 
 

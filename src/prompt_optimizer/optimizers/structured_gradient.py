@@ -1,7 +1,7 @@
 """Gradient prompt tuning with structured outputs based on the paper: https://arxiv.org/pdf/2305.03495."""
 
 import logging
-from typing import Generator
+from typing import Generator, Tuple
 
 from pydantic import BaseModel
 
@@ -66,14 +66,16 @@ class StructuredGradientOptimizer(GradientOptimizer):
         responses = response_model.feedbacks if hasattr(response_model, "feedbacks") else response_model.prompts
         return responses
 
-    def _generate_new_prompts(self, prompt: str, error_string: str, num_feedbacks: int, steps_per_gradient: int, **kwargs) -> Generator[str, None, None]:
+    def _generate_new_prompts(
+        self, prompt: str, error_string: str, num_feedbacks: int, steps_per_gradient: int, **kwargs
+    ) -> Generator[Tuple[str, str], None, None]:
         """
         Generate a number of new prompts based on the given prompt and error string.
 
         Args:
-            prompt (str): 
+            prompt (str):
                 Prompt to generate new prompts off of.
-            error_string (str): 
+            error_string (str):
                 Description of the errors with the `prompt`.
             num_feedbacks (int, optional):
                 Number of feedbacks (gradients) to generate for each prompt. This won't be enforced and the LLM may generate more or less than this.
@@ -94,12 +96,12 @@ class StructuredGradientOptimizer(GradientOptimizer):
         gradients = self._generate(
             prompt_template=GRADIENT_PROMPT, template_kwargs=template_kwargs, response_format=GradientResponse, **kwargs
         )
-        gradients = gradients[: num_feedbacks]
+        gradients = gradients[:num_feedbacks]
         for gradient in gradients:
             template_kwargs.update({"gradient": gradient})
             new_prompts = self._generate(
                 prompt_template=REWRITE_PROMPT, template_kwargs=template_kwargs, response_format=RewriteResponse, **kwargs
             )
-            new_prompts = new_prompts[: steps_per_gradient]
+            new_prompts = new_prompts[:steps_per_gradient]
             for new_prompt in new_prompts:
-                yield new_prompt
+                yield new_prompt, gradient
