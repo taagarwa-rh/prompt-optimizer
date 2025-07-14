@@ -7,7 +7,7 @@ from prompt_optimizer.optimizers import GradientOptimizer
 logging.basicConfig(level=logging.INFO)
 
 # 1. Create an OpenAI client pointing to Ollama for optimizing the prompt
-model_name = "qwen2.5:7b" # Or your preferred model
+model_name = "qwen2.5:32b" # Or your preferred model
 client = Client(base_url="http://localhost:11434/v1", api_key="NONE")
 
 # 2. Create your dataset of test cases
