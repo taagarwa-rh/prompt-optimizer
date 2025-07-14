@@ -16,7 +16,7 @@ But this prompt gets the following examples wrong:
 {error_string}
 give {num_feedbacks} reasons why the prompt could
 have gotten these examples wrong.
-Respond using JSON only."""
+Respond using JSON. Each reason should be in plain text or markdown format."""
 
 REWRITE_PROMPT = """I'm trying to write a zero-shot classifier prompt.
 My current prompt is:
@@ -25,7 +25,7 @@ But it gets the following examples wrong:
 {error_string}
 Based on these examples the problem with this prompt is that {gradient}
 Based on the above information, write {steps_per_gradient} different improved prompts.
-Respond using JSON only."""
+Respond using JSON. Each prompt should be in plain text or markdown format."""
 
 
 class GradientResponse(BaseModel):
