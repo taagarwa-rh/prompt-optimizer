@@ -8,9 +8,13 @@ pre-mr: format lint
 
 # Formats Code
 format:
-    poetry run ruff check --select I --fix src
-    poetry run ruff format src
+    uv run ruff check --select I --fix src
+    uv run ruff format src
 
 # Lints Code
 lint *options:
-    poetry run ruff check src {{ options }}
+    uv run ruff check src {{ options }}
+
+# Build docs
+build-docs:
+    uv run mkdocs serve

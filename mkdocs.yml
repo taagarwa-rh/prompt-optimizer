@@ -1,0 +1,53 @@
+site_name: "Prompt Optimizer Docs"
+
+site_url: "https://taagarwa.pages.redhat.com/prompt-optimizer/"
+
+repo_url: https://gitlab.cee.redhat.com/taagarwa/prompt-optimizer
+
+theme:
+  name: "material"
+  icon:
+    logo: material/message-cog-outline
+  features:
+    # Add tabs
+    - navigation.tabs 
+    - navigation.tabs.sticky
+    # Allow code to be copied
+    - content.code.copy
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+- search
+- mkdocstrings:
+    handlers:
+      python:
+        options:
+          inherited_members: true
+
+markdown_extensions:
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  # Syntax Highlighting
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+      
