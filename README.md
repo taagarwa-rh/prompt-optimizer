@@ -1,5 +1,7 @@
 # Prompt Optimizer
 
+[**Documentation**](https://taagarwa.pages.redhat.com/prompt-optimizer)
+
 Optimize your prompts using Reinforcement Learning.
 
 ## Setup
