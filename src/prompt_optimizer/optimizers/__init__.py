@@ -1,6 +1,6 @@
 """Prompt optimizer classes."""
 
-from .base import BaseOptimizer, PromptResult
+from .base import BaseOptimizer, PromptResult, RewardFuncResult
 from .gradient import GradientOptimizer
 from .structured_gradient import StructuredGradientOptimizer
 
