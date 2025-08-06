@@ -322,4 +322,4 @@ class GradientOptimizer(BaseOptimizer):
             # Initalize the next iteration with the new prompts
             prompts = new_prompts
 
-            return sorted(prompt_results, key=lambda x: x.reward, reverse=True)
+        return sorted(prompt_results, key=lambda x: x.reward, reverse=True)
