@@ -203,3 +203,17 @@ You can see more examples in the [examples](./examples/) directory.
 - [ ] Improve stability of default prompts
 - [ ] AgentPrompt Optimizer from [arXiv](https://arxiv.org/pdf/2310.16427)
 - [ ] APE Optimizer from [arXiv](https://arxiv.org/abs/2211.01910)
+
+## Citations
+
+```
+@misc{pryzant2023automaticpromptoptimizationgradient,
+      title={Automatic Prompt Optimization with "Gradient Descent" and Beam Search}, 
+      author={Reid Pryzant and Dan Iter and Jerry Li and Yin Tat Lee and Chenguang Zhu and Michael Zeng},
+      year={2023},
+      eprint={2305.03495},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2305.03495}, 
+}
+```
