@@ -89,7 +89,7 @@ class APEOptimizer(BasePipeline):
         """
         super().__init__(
             client=client,
-            seed_prompts=[], # There is no seeding for APE
+            seed_prompts=[],  # There is no seeding for APE
             validation_set=validation_set,
             max_depth=max_depth,
             evaluator=evaluator,
