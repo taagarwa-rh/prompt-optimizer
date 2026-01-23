@@ -8,12 +8,12 @@ pre-mr: format lint
 
 # Formats Code
 format:
-    uv run ruff check --select I --fix src
+    uv run ruff check --select I --fix src examples
     uv run ruff format src
 
 # Lints Code
 lint *options:
-    uv run ruff check src {{ options }}
+    uv run ruff check src examples {{ options }}
 
 # Build docs
 build-docs:

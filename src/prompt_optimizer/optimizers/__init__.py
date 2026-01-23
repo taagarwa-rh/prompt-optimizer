@@ -1,7 +1,9 @@
 """Prompt optimizer classes."""
 
-from .base import BaseOptimizer, PromptResult, RewardFuncResult
-from .gradient import GradientOptimizer
-from .structured_gradient import StructuredGradientOptimizer
+from .ape import APEOptimizer
+from .protegi import ProtegiOptimizer
 
-__all__ = ["BaseOptimizer", "PromptResult", "RewardFuncResult", "GradientOptimizer", "StructuredGradientOptimizer"]
+__all__ = [
+    "APEOptimizer",
+    "ProtegiOptimizer",
+]

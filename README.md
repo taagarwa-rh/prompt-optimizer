@@ -1,219 +1,67 @@
 # Prompt Optimizer
 
-[**Documentation**](https://taagarwa.pages.redhat.com/prompt-optimizer)
+Improve your prompts with any LLM using Automatic Prompt Optimization (APO).
 
-Optimize your prompts using Reinforcement Learning.
+## Overview
 
-## Setup
+![](./docs/_static/apo.png)
+<center><small>From <i>"A Systematic Survey of Automatic Prompt Optimization Techniques"</i></small></center>
 
-There are three key components you need to define in order to execute the optimizer:
+Automatic prompt optimization (APO) is a reinforcement learning technique to improve prompt performance.
+At each iteration, new prompts are generated and scored against your AI system using your validation set.
+Promising prompts are kept and used to seed the next generation of prompts.
+The goal is to find the prompt that maximizes the AI system's performance on the evaluation metric you define.
 
-1. [Dataset](#1-dataset) - your test cases
-2. [Pipeline](#2-pipeline) - a function that executes your AI pipeline
-3. [Reward Function](#3-reward-function) - a function that rewards outputs from your pipeline and collects errors
+## Installation
 
-### 1. Dataset
-A pandas DataFrame of test cases. Can include any columns, but generally it will include a column for input and a column for output (e.g. question and answer).
+**uv (recommended)**
 
-```python
-import pandas as pd
-
-data = [
-    {"question": "What is the capital of France?", "answer": "Paris"},
-    {"question": "Who wrote 'To Kill a Mockingbird'?", "answer": "Harper Lee"},
-    {"question": "What is the largest planet in our solar system?", "answer": "Jupiter"}
-]
-dataset = pd.DataFrame(data)
-```
-
-### 2. Pipeline
-A function that takes a prompt and a single row from your dataset as kwargs and produces an output (e.g., a string response). We are using an OpenAI client that pings Ollama locally to make our completions, but you can use any logic here to produce your output (e.g. RAG, structured output, classifier, etc.).
-
-```python
-from openai import Client
-
-model_name = "qwen2.5:32b" # Or your preferred model
-client = Client(base_url="http://localhost:11434/v1", api_key="NONE")
-
-def pipeline(prompt: str, question: str, **kwargs) -> str:
-    messages = [
-        {"role": "system", "content": prompt}, 
-        {"role": "user", "content": question},
-    ]
-    response = client.chat.completions.create(messages=messages, model=model_name)
-    result = response.choices[0].message.content.strip()
-    return result
-```
-
-### 3. Reward Function
-A function that takes a list of prediction (pipeline outputs) and other columns from your dataset as kwargs and returns a dictionary, with a reward and an error_string explaining what the predictions got wrong.
-
-```python
-def reward_func(predictions: list[str], question: list[str], answer: list[str], **kwargs) -> dict:
-    reward = 0.0
-    errors = []
-    for i, prediction in enumerate(predictions):
-        actual = answer[i]
-        ques = question[i]
-        if actual == prediction:
-            reward += 1
-        else:
-            reward += 0
-            errors.append(f"Failed to answer the question: {ques}\nPredicted: {prediction}\nActual: {actual}")
-    return {
-        "reward": reward,
-        "error_string": "\n\n".join(errors) if errors else None
-    }
+```sh
+uv add git+https://github.com/taagarwa-rh/prompt-optimizer.git
 ```
 
 ## Usage
-With your pipeline, reward function, and dataset defined, you can build a prompt optimizer. We are passing an OpenAI client pointing to Ollama locally to use for generating new prompts. The `GradientOptimizer` and `StructuredGradientOptimizer` are based on the paper [Automatic Prompt Optimization with “Gradient Descent” and Beam Search](https://arxiv.org/pdf/2305.03495).
 
-```python
-from prompt_optimizer.optimizers import GradientOptimizer, StructuredGradientOptimizer
-
-model_name = "qwen2.5:32b" # Or your preferred model
-client = Client(base_url="http://localhost:11434/v1", api_key="NONE")
-
-optimizer = GradientOptimizer(
-    pipeline=pipeline, 
-    reward_func=reward_func,
-    dataset=dataset, 
-    model_name=model_name, 
-    client=client
-)
-
-# Or for more stable outputs
-optimizer = StructuredGradientOptimizer(
-    pipeline=pipeline, 
-    reward_func=reward_func, 
-    dataset=dataset, 
-    model_name=model_name, 
-    client=client
-)
-```
-
-Once you have an optimizer defined, you can use the `optimize` method to iteratively generate new prompts to improve your baseline prompt.
-
-Here is the prompt before optimization:
-```python
-baseline_prompt = "Please answer every question the user asks to the best of your ability."
-response = pipeline(prompt=baseline_prompt, question="Who wrote 'To Kill a Mockingbird'?")
-print(response)
-```
-```
-'To Kill a Mockingbird' was written by Harper Lee. It was published in 1960 and became widely known for its portrayal of racial injustice in the American South.
-```
-
-Now we optimize it and view the best prompt:
-```python
-prompts = optimizer.optimize(baseline_prompt=baseline_prompt)
-print(prompts[0].prompt)
-```
-```
-Please provide only the most direct answer to the user's question without any additional information or explanation.
-```
-
-Now we use the best prompt in our pipeline:
-```python
-optimized_prompt = prompts[0].prompt
-response = pipeline(prompt=optimized_prompt, question="Who wrote 'To Kill a Mockingbird'?")
-print(response)
-```
-```
-Harper Lee
-```
-
-## Complete Example
-
-```python
-from openai import Client
-import pandas as pd
-from prompt_optimizer.optimizers import GradientOptimizer
-
-# 1. Create dataset for optimization
-data = [
-    {"question": "What is the capital of France?", "answer": "Paris"},
-    {"question": "Who wrote 'To Kill a Mockingbird'?", "answer": "Harper Lee"},
-    {"question": "What is the largest planet in our solar system?", "answer": "Jupiter"}
-]
-dataset = pd.DataFrame(data)
-
-# 2. Create pipeline function
-model_name = "qwen2.5:32b" # Or your preferred model
-client = Client(base_url="http://localhost:11434/v1", api_key="NONE")
-
-def pipeline(prompt: str, question: str, **kwargs) -> str:
-    messages = [
-        {"role": "system", "content": prompt}, 
-        {"role": "user", "content": question},
-    ]
-    response = client.chat.completions.create(messages=messages, model=model_name)
-    result = response.choices[0].message.content.strip()
-    return result
-
-# 3. Define reward function (exact match in this case)
-def reward_func(predictions: list[str], question: list[str], answer: list[str], **kwargs) -> dict:
-    reward = 0.0
-    errors = []
-    for i, prediction in enumerate(predictions):
-        actual = answer[i]
-        ques = question[i]
-        if actual == prediction:
-            reward += 1
-        else:
-            reward += 0
-            errors.append(f"Failed to answer the question: {ques}\nPredicted: {prediction}\nActual: {actual}")
-    return {
-        "reward": reward,
-        "error_string": "\n\n".join(errors) if errors else None
-    }
-
-# 4. Construct an optimizer
-optimizer = GradientOptimizer(
-    pipeline=pipeline, 
-    reward_func=reward_func, 
-    dataset=dataset, 
-    model_name=model_name, 
-    client=client
-)
-
-# 5. Optimize
-baseline_prompt = "Please answer every question the user asks to the best of your ability."
-print("Baseline Prompt:", baseline_prompt)
-prompts = optimizer.optimize(baseline_prompt=baseline_prompt)
-optimized_prompt = prompts[0].prompt
-print("Optimized Prompt:", optimized_prompt)
-
-# 6. Show original and optimized pipeline outputs
-question = "Who wrote 'To Kill a Mockingbird'?"
-print("Question:", question)
-response = pipeline(prompt=baseline_prompt, question=question)
-print("Answer Before Optimization:", response)
-
-response = pipeline(prompt=optimized_prompt, question=question)
-print("Answer After Optimization:", response)
-```
-
-You can see more examples in the [examples](./examples/) directory.
+See [the docs](./docs/) for information on package usage.
 
 ## Roadmap
 
-- [ ] Add sample pipelines and metrics
-- [ ] Improve stability of default prompts
-- [ ] AgentPrompt Optimizer from [arXiv](https://arxiv.org/pdf/2310.16427)
-- [ ] APE Optimizer from [arXiv](https://arxiv.org/abs/2211.01910)
+- [ ] Add prepackaged pipelines and metrics
 
 ## Citations
 
 ```
+@inproceedings{Ramnath_2025,
+   title={A Systematic Survey of Automatic Prompt Optimization Techniques},
+   url={http://dx.doi.org/10.18653/v1/2025.emnlp-main.1681},
+   DOI={10.18653/v1/2025.emnlp-main.1681},
+   booktitle={Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing},
+   publisher={Association for Computational Linguistics},
+   author={Ramnath, Kiran and Zhou, Kang and Guan, Sheng and Mishra, Soumya Smruti and Qi, Xuan and Shen, Zhengyuan and Wang, Shuai and Woo, Sangmin and Jeoung, Sullam and Wang, Yawei and Wang, Haozhu and Ding, Han and Lu, Yuzhe and Xu, Zhichao and Zhou, Yun and Srinivasan, Balasubramaniam and Yan, Qiaojing and Chen, Yueyan and Ding, Haibo and Xu, Panpan and Cheong, Lin Lee},
+   year={2025},
+   pages={33066–33098} }
+```
+
+```
+@misc{zhou2023largelanguagemodelshumanlevel,
+    title={Large Language Models Are Human-Level Prompt Engineers},
+    author={Yongchao Zhou and Andrei Ioan Muresanu and Ziwen Han and Keiran Paster and Silviu Pitis and Harris Chan and Jimmy Ba},
+    year={2023},
+    eprint={2211.01910},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG},
+    url={https://arxiv.org/abs/2211.01910},
+}
+```
+
+```
 @misc{pryzant2023automaticpromptoptimizationgradient,
-      title={Automatic Prompt Optimization with "Gradient Descent" and Beam Search}, 
-      author={Reid Pryzant and Dan Iter and Jerry Li and Yin Tat Lee and Chenguang Zhu and Michael Zeng},
-      year={2023},
-      eprint={2305.03495},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2305.03495}, 
+    title={Automatic Prompt Optimization with "Gradient Descent" and Beam Search}, 
+    author={Reid Pryzant and Dan Iter and Jerry Li and Yin Tat Lee and Chenguang Zhu and Michael Zeng},
+    year={2023},
+    eprint={2305.03495},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL},
+    url={https://arxiv.org/abs/2305.03495}, 
 }
 ```

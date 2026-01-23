@@ -1,6 +1,4 @@
-# Library
-
-## Optimizers
+# Overview
 
 ::: src.prompt_optimizer.optimizers
     options:

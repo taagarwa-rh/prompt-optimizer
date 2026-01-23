@@ -5,8 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "openai>=1.84.0",
-    "pandas>=2.2.3",
+    "langchain-core>=1.2.7",
+    "rich>=14.2.0",
 ]
 
 [build-system]
@@ -24,13 +24,17 @@ ignore = [
     "D203", # one-blank-line-before-class
     "D212", # multi-line-summary-first-line
     "D100", # undocumented-public-module
+    "D413",
 ]
 per-file-ignores = { "tests/*" = ["D"] }
 
 [dependency-groups]
 dev = [
+    "langchain-openai>=1.1.7",
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.6.15",
     "mkdocstrings[python]>=0.29.1",
+    "pytest>=9.0.2",
+    "python-dotenv>=1.2.1",
     "ruff>=0.11.13",
 ]
