@@ -76,7 +76,7 @@ def evaluator(prompt: BasePrompt, validation_set: list[dict]) -> float:
 
     # Optionally, save the predictions and other info in metadata
     prompt.metadata["predictions"] = predictions
-    promtp.metadata["run_date"] = datetime.now()
+    prompt.metadata["run_date"] = datetime.now()
 
     return score
 ```
