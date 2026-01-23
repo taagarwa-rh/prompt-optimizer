@@ -73,9 +73,14 @@ class BasePipeline(ABC):
                 Defaults to False.
 
         Returns:
-            _type_: _description_
+            list[list[BasePrompt]]:
+                List of lists where each list contains the prompts from each iteration.
+                E.g. list[0] contains prompts from the first iteration, list[1] the second, etc.
+                If include_candidates is False, each inner list contains only the retained prompts at each iteration.
+                If include_candidates is True, each inner list contains all candidate prompts at each iteration,
+                including those that were discarded.
+
         """
-        # TODO: fix docs
         # Decide whether to include candidates
         if include_candidates:
             all_prompts = self._g

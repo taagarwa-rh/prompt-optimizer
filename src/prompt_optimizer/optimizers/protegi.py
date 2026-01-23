@@ -155,7 +155,6 @@ class ProtegiOptimizer(BasePipeline):
 
     def generate_prompt_candidates(self, *, prompts: list[BasePrompt], **kwargs) -> list[BasePrompt]:
         """Generate prompt candidates using gradients."""
-        # TODO: Store origin and gradient in prompt metdata
         prompt_candidates = []
         for prompt in track(prompts, description="Generating prompt candidates", transient=True):
             # Generate gradients
