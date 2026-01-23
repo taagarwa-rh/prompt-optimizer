@@ -21,7 +21,7 @@ uv add git+https://github.com/taagarwa-rh/prompt-optimizer.git
 
 ## Usage
 
-See [the docs](./docs/) for information on package usage.
+See [the docs](https://taagarwa-rh.github.io/prompt-optimizer/) for information on package usage.
 
 ## Roadmap
 
@@ -39,28 +39,4 @@ See [the docs](./docs/) for information on package usage.
    author={Ramnath, Kiran and Zhou, Kang and Guan, Sheng and Mishra, Soumya Smruti and Qi, Xuan and Shen, Zhengyuan and Wang, Shuai and Woo, Sangmin and Jeoung, Sullam and Wang, Yawei and Wang, Haozhu and Ding, Han and Lu, Yuzhe and Xu, Zhichao and Zhou, Yun and Srinivasan, Balasubramaniam and Yan, Qiaojing and Chen, Yueyan and Ding, Haibo and Xu, Panpan and Cheong, Lin Lee},
    year={2025},
    pages={33066–33098} }
-```
-
-```
-@misc{zhou2023largelanguagemodelshumanlevel,
-    title={Large Language Models Are Human-Level Prompt Engineers},
-    author={Yongchao Zhou and Andrei Ioan Muresanu and Ziwen Han and Keiran Paster and Silviu Pitis and Harris Chan and Jimmy Ba},
-    year={2023},
-    eprint={2211.01910},
-    archivePrefix={arXiv},
-    primaryClass={cs.LG},
-    url={https://arxiv.org/abs/2211.01910},
-}
-```
-
-```
-@misc{pryzant2023automaticpromptoptimizationgradient,
-    title={Automatic Prompt Optimization with "Gradient Descent" and Beam Search}, 
-    author={Reid Pryzant and Dan Iter and Jerry Li and Yin Tat Lee and Chenguang Zhu and Michael Zeng},
-    year={2023},
-    eprint={2305.03495},
-    archivePrefix={arXiv},
-    primaryClass={cs.CL},
-    url={https://arxiv.org/abs/2305.03495}, 
-}
 ```
