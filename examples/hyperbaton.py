@@ -5,7 +5,7 @@ from urllib.request import urlopen
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
-from prompt_optimizer.optimizers.protegi import ProtegiOptimizer
+from prompt_optimizer.optimizers import OPROOptimizer
 from prompt_optimizer.pipeline.base import BasePrompt
 
 load_dotenv()
@@ -16,7 +16,7 @@ api_key = os.environ.get("OPENAI_API_KEY")
 def get_agent():
     """Get the LLM client for the AI system."""
     model = "qwen3:0.6b"
-    client = ChatOpenAI(base_url=base_url, api_key=api_key, model=model, max_completion_tokens=5, temperature=0.0)
+    client = ChatOpenAI(base_url=base_url, api_key=api_key, model=model, temperature=0.0, max_completion_tokens=5)
     return client
 
 def get_optimizer_client():
@@ -41,7 +41,6 @@ def evaluator(prompt: BasePrompt, validation_set: list[dict]) -> list[str]:
     """Prompt evaluator function."""
     # Run the prompt through the AI system
     predictions = []
-    errors = []
     num_correct = 0
     agent = get_agent()
     for row in validation_set:
@@ -58,18 +57,12 @@ def evaluator(prompt: BasePrompt, validation_set: list[dict]) -> list[str]:
             num_correct += 1
         else:
             num_correct += 0
-            error = f"Question: '{question}'\nPrediction: '{prediction}'\nActual Answer: {actual}"
-            errors.append(error)
-    
+
     # Compute the score
     score = num_correct / len(validation_set)
-
-    # Save the error string (required for ProtegiOptimizer)
-    prompt.metadata["error_string"] = "\n\n".join(errors)
     
     # Save the predictions and score
     prompt.metadata["predictions"] = predictions
-    prompt.metadata["score"] = score
     
     return score
 
@@ -89,18 +82,19 @@ def main():
         print()
     print(f"Baseline Prompt Score: {baseline_prompt.score}")
 
-    # Define your Optimizer, requires a pipeline, reward_func, dataset, and a model name. 
-    # We are passing an OpenAI client as well so we can use Ollama locally.
+    # Define your Optimizer
     client = get_optimizer_client()
-    optimizer = ProtegiOptimizer(
+    optimizer = OPROOptimizer(
         client=client,
         seed_prompts=[baseline_prompt],
         validation_set=train_set,
-        max_depth=2,
+        max_depth=5,
         evaluator=evaluator,
+        input_field="input",
+        output_field="target",
     )
 
-    # Optimize your baseline prompt. Set a depth of 1 since this is a simple task and should converge quickly.
+    # Optimize the prompt and output the intermediate prompts to a jsonl file
     new_prompt = optimizer.run()
 
     # View the newly created prompt
