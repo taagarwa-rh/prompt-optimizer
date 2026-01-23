@@ -6,7 +6,7 @@ title: APE
 
 ## About
 
-![](./_static/ape.png)
+![](./static/ape.png)
 
 Automatic Prompt Engineer (APE) starts by generating a set of prompt candidates through "forward generation".
 During forward generation, input and output pairs from the validation set are presented to the language model, and the model is tasked with generating the instructions that could be used to answer that question.

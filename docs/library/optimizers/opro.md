@@ -2,11 +2,11 @@
 title: OPRO
 ---
 
-# Optimization by PROmpting (APE)
+# Optimization by PROmpting (OPRO)
 
 ## About
 
-![](./_static/opro.png)
+![](./static/opro.png)
 
 Optimization by PROmpting (OPRO) starts with a seed prompt.
 At each iteration, a collection of past prompt candidates and scores and a random sample of input and output pairs from the validation set are formatted into a metaprompt.

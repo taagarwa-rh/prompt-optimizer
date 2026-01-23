@@ -6,7 +6,7 @@ title: ProTeGi
 
 ## About
 
-![](./_static/protegi.png)
+![](./static/protegi.png)
 
 Prompt Optimization with Textual Gradients (ProTeGi) starts from an initial prompt and iteratively updates using feedback from the language model, called "gradients".
 The initial prompt is scored using the validation set and the failures are collected.
