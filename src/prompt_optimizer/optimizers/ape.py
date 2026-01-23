@@ -1,5 +1,6 @@
 import logging
 import random
+from pathlib import Path
 from typing import Callable, Optional, Union
 
 from rich.progress import track
@@ -50,6 +51,7 @@ class APEOptimizer(BasePipeline):
         validation_set: ValidationSetType,
         max_depth: int,
         evaluator: Callable[[BasePrompt, ValidationSetType], ScoreType],
+        output_path: Optional[Union[str, Path]] = None,
         input_field: str,
         output_field: str,
         num_initial_prompts: int = 10,
@@ -69,6 +71,9 @@ class APEOptimizer(BasePipeline):
                 Maximum iteration depth for prompt generation.
             evaluator (Callable[[BasePrompt, ValidationSetType], ScoreType]):
                 Function that takes a prompt and the validation data and returns a score.
+            output_path (Union[str, Path], optional):
+                Path to store run results. Should be a .jsonl file path.
+                If None, no outputs will be written to disk. Defaults to None.
             input_field (str):
                 Field in the validation set that represents the input. Used in forward generation in
                 the "Input:" field.
@@ -93,6 +98,7 @@ class APEOptimizer(BasePipeline):
             validation_set=validation_set,
             max_depth=max_depth,
             evaluator=evaluator,
+            output_path=output_path,
         )
         self.num_initial_prompts = num_initial_prompts
         self.num_exemplars = num_exemplars

@@ -1,6 +1,7 @@
 import logging
 from abc import ABC
-from typing import Callable
+from pathlib import Path
+from typing import Callable, Optional, Union
 
 from rich.progress import track
 
@@ -25,6 +26,7 @@ class BasePipeline(ABC):
         validation_set: ValidationSetType,
         max_depth: int,
         evaluator: Callable[[BasePrompt, ValidationSetType], ScoreType],
+        output_path: Optional[Union[str, Path]] = None,
     ):
         """
         Initialize the inference evaluation pipeline.
@@ -38,8 +40,11 @@ class BasePipeline(ABC):
                 Set of examples to evaluate the prompt on.
             max_depth (int):
                 Maximum iteration depth for prompt generation.
-            evaluator (evaluator): Callable[[BasePrompt, ValidationSetType], ScoreType]
+            evaluator (Callable[[BasePrompt, ValidationSetType], ScoreType]):
                 Function that takes a prompt and the validation data and returns a score.
+            output_path (Union[str, Path], optional):
+                Path to store run results. Should be a .jsonl file path.
+                If None, no outputs will be written to disk. Defaults to None.
 
         """
         self.client = client
@@ -47,6 +52,7 @@ class BasePipeline(ABC):
         self.validation_set = validation_set
         self.max_depth = max_depth
         self.evaluator = evaluator
+        self.output_path = output_path
         self._p: list[list[BasePrompt]] = []
         self._g: list[list[BasePrompt]] = []
 
@@ -77,6 +83,20 @@ class BasePipeline(ABC):
             all_prompts = self._p
 
         return all_prompts
+
+    def save_prompts(self):
+        """Save prompts in jsonl format."""
+        # Exit if no output path is set
+        if self.output_path is None:
+            return
+
+        # Save the prompts to the file
+        prompts = sum(self._p, start=[])
+        lines = [prompt.model_dump_json() for prompt in prompts]
+        with open(self.output_path, "w") as f:
+            for line in lines:
+                f.write(line)
+                f.write("\n")
 
     ## Scoring ##
     def _evaluate(self, prompt: BasePrompt, validation_set: ValidationSetType) -> ScoreType:
@@ -149,5 +169,9 @@ class BasePipeline(ABC):
             # Check for early convergence
             if self.check_early_convergence(all_prompts=self._p):
                 break
+
+        # Save prompts if requested
+        self.save_prompts()
+
         # Return best prompt
         return self.select_best_prompt(all_prompts=self._p)

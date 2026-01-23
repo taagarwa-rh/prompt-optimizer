@@ -1,5 +1,6 @@
 import logging
 import re
+from pathlib import Path
 from typing import Callable, Literal, Optional, Union
 
 from rich.progress import track
@@ -65,6 +66,7 @@ class ProtegiOptimizer(BasePipeline):
         validation_set: ValidationSetType,
         max_depth: int,
         evaluator: Callable[[BasePrompt, ValidationSetType], ScoreType],
+        output_path: Optional[Union[str, Path]] = None,
         num_feedbacks: int = 3,
         steps_per_gradient: int = 3,
         num_resample: int = 3,
@@ -85,6 +87,9 @@ class ProtegiOptimizer(BasePipeline):
                 Maximum iteration depth for prompt generation.
             evaluator (Callable[[BasePrompt, ValidationSetType], ScoreType]):
                 Function that takes a prompt and the validation data and returns a score.
+            output_path (Union[str, Path], optional):
+                Path to store run results. Should be a .jsonl file path.
+                If None, no outputs will be written to disk. Defaults to None.
             num_feedbacks (int, optional):
                 Number of feedbacks to generate per prompt. Defaults to 3.
             steps_per_gradient (int, optional):
@@ -106,6 +111,7 @@ class ProtegiOptimizer(BasePipeline):
             validation_set=validation_set,
             max_depth=max_depth,
             evaluator=evaluator,
+            output_path=output_path,
         )
         self.num_feedbacks = num_feedbacks
         self.steps_per_gradient = steps_per_gradient
