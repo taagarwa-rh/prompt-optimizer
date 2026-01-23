@@ -1,8 +1,8 @@
 site_name: "Prompt Optimizer Docs"
 
-site_url: "https://taagarwa.pages.redhat.com/prompt-optimizer/"
+site_url: "https://taagarwa-rh.github.io/prompt-optimizer/"
 
-repo_url: https://gitlab.cee.redhat.com/taagarwa/prompt-optimizer
+repo_url: https://github.com/taagarwa-rh/prompt-optimizer
 
 theme:
   name: "material"
