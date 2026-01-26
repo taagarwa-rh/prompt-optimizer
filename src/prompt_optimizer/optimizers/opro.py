@@ -51,7 +51,7 @@ class OPROOptimizer(BasePipeline):
         validation_set: ValidationSetType,
         max_depth: int,
         evaluator: Callable[[BasePrompt, ValidationSetType], ScoreType],
-        output_path: Optional[Union[str, Path]],
+        output_path: Optional[Union[str, Path]] = None,
         input_field: str,
         output_field: str,
         num_candidates_per_step: int = 20,
@@ -175,7 +175,8 @@ class OPROOptimizer(BasePipeline):
 
             prompt_candidates.append(BasePrompt(content=prompt_candidate))
 
-        return prompt_candidates
+        # Return the original prompts plus the new candidates
+        return prompts + prompt_candidates
 
     def select_prompt_candidates(self, *, prompts: list[BasePrompt], validation_set: ValidationSetType) -> list[BasePrompt]:
         """Select prompt candidates."""
