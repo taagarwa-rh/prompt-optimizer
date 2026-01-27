@@ -4,7 +4,7 @@ Improve your prompts with any LLM using Automatic Prompt Optimization (APO).
 
 ## Overview
 
-![](./_static/apo.png)
+![](./static/apo.png)
 <center><small>From <i>"A Systematic Survey of Automatic Prompt Optimization Techniques"</i></small></center>
 
 Automatic prompt optimization (APO) is a reinforcement learning technique to improve prompt performance.
@@ -34,8 +34,6 @@ validation_set = [
     {"question": "What is the capital of France?", "answer": "Paris"},
     {"question": "What is the largest planet in our solar system?", "answer": "Jupiter"},
     {"question": "What is the smallest planet in our solar system?", "answer": "Mercury"},
-    {"question": "What is the longest river in the world?", "answer": "Nile"},
-    {"question": "What is the smallest river in the world?", "answer": "Reprua River"},
 ]
 ```
 
@@ -87,7 +85,8 @@ Once you have your **validation set** and **evaluator** defined, you can set up 
 
 Select one of the available optimizers to learn more about its usage:
 
-- [ProTeGi](./library/optimizers/protegi.md) (Recommended)
+- [OPRO](./library/optimizers/opro.md) (Recommended)
+- [ProTeGi](./library/optimizers/protegi.md)
 - [APE](./library/optimizers/ape.md)
 
 ## Citations
@@ -102,28 +101,4 @@ Select one of the available optimizers to learn more about its usage:
    author={Ramnath, Kiran and Zhou, Kang and Guan, Sheng and Mishra, Soumya Smruti and Qi, Xuan and Shen, Zhengyuan and Wang, Shuai and Woo, Sangmin and Jeoung, Sullam and Wang, Yawei and Wang, Haozhu and Ding, Han and Lu, Yuzhe and Xu, Zhichao and Zhou, Yun and Srinivasan, Balasubramaniam and Yan, Qiaojing and Chen, Yueyan and Ding, Haibo and Xu, Panpan and Cheong, Lin Lee},
    year={2025},
    pages={33066–33098} }
-```
-
-```
-@misc{zhou2023largelanguagemodelshumanlevel,
-    title={Large Language Models Are Human-Level Prompt Engineers},
-    author={Yongchao Zhou and Andrei Ioan Muresanu and Ziwen Han and Keiran Paster and Silviu Pitis and Harris Chan and Jimmy Ba},
-    year={2023},
-    eprint={2211.01910},
-    archivePrefix={arXiv},
-    primaryClass={cs.LG},
-    url={https://arxiv.org/abs/2211.01910},
-}
-```
-
-```
-@misc{pryzant2023automaticpromptoptimizationgradient,
-    title={Automatic Prompt Optimization with "Gradient Descent" and Beam Search}, 
-    author={Reid Pryzant and Dan Iter and Jerry Li and Yin Tat Lee and Chenguang Zhu and Michael Zeng},
-    year={2023},
-    eprint={2305.03495},
-    archivePrefix={arXiv},
-    primaryClass={cs.CL},
-    url={https://arxiv.org/abs/2305.03495}, 
-}
 ```
