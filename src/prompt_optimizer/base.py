@@ -11,3 +11,6 @@ class BasePrompt(BaseModel):
     content: PromptContentType
     score: ScoreType = None
     metadata: dict[str, Any] = {}
+
+    def __hash__(self):
+        return hash(self.content)

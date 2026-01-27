@@ -89,16 +89,19 @@ class BasePipeline(ABC):
 
         return all_prompts
 
-    def save_prompts(self):
+    def save_prompts(self, output_path: Optional[Union[str, Path]]):
         """Save prompts in jsonl format."""
         # Exit if no output path is set
         if self.output_path is None:
             return
 
-        # Save the prompts to the file
+        # Get and deduplicate prompts
         prompts = sum(self._p, start=[])
+        prompts = list(set(prompts))
+
+        # Save the prompts to the file
         lines = [prompt.model_dump_json() for prompt in prompts]
-        with open(self.output_path, "w") as f:
+        with open(output_path, "w") as f:
             for line in lines:
                 f.write(line)
                 f.write("\n")
@@ -176,7 +179,7 @@ class BasePipeline(ABC):
                 break
 
         # Save prompts if requested
-        self.save_prompts()
+        self.save_prompts(output_path=self.output_path)
 
         # Return best prompt
         return self.select_best_prompt(all_prompts=self._p)
