@@ -72,15 +72,17 @@ def main():
     train_set, test_set = get_dataset()
     
     # Demonstrate the baseline prompt
-    baseline_prompt = BasePrompt(content="Please answer each question with '(A)' or '(B)' only, and no other thoughts.")
-    baseline_prompt.score = evaluator(prompt=baseline_prompt, validation_set=test_set)
+    baseline_prompt = BasePrompt(content="You are a grammar expert. Please answer each question with '(A)' or '(B)' only, and no other thoughts.")
+    baseline_prompt.score = evaluator(prompt=baseline_prompt, validation_set=train_set)
+    test_score = evaluator(prompt=baseline_prompt, validation_set=test_set)
     predictions = baseline_prompt.metadata["predictions"]
     for row, response in zip(test_set[:3], predictions[:3]):
         print(f"Question: {row["input"]}")
         print(f"Response: {response}")
         print(f"Actual Answer: {row['target']}")
         print()
-    print(f"Baseline Prompt Score: {baseline_prompt.score}")
+    print(f"Baseline Prompt Train Score: {baseline_prompt.score}")
+    print(f"Baseline Prompt Test Score: {test_score}")
 
     # Define your Optimizer
     client = get_optimizer_client()
@@ -88,28 +90,30 @@ def main():
         client=client,
         seed_prompts=[baseline_prompt],
         validation_set=train_set,
-        max_depth=5,
+        max_depth=3,
         evaluator=evaluator,
         input_field="input",
         output_field="target",
+        output_path="out.jsonl",
     )
 
     # Optimize the prompt and output the intermediate prompts to a jsonl file
-    new_prompt = optimizer.run()
+    best_prompt = optimizer.run()
 
     # View the newly created prompt
-    print("NEW PROMPT:\n", new_prompt.content)
+    print(f"BEST PROMPT:\n{best_prompt.content}")
     print()
 
     # Demonstrate the effectiveness of the new prompt
-    score = evaluator(prompt=new_prompt, validation_set=test_set)
-    predictions = new_prompt.metadata["predictions"]
+    score = evaluator(prompt=best_prompt, validation_set=test_set)
+    predictions = best_prompt.metadata["predictions"]
     for row, response in zip(test_set[:3], predictions[:3]):
         print(f"Question: {row["input"]}")
         print(f"Response: {response}")
         print(f"Actual Answer: {row['target']}")
         print()
-    print(f"Best Prompt Score: {score}")
+    print(f"Best Prompt Train Score: {best_prompt.score}")
+    print(f"Best Prompt Test Score: {score}")
     
 if __name__ == "__main__":
     main()
