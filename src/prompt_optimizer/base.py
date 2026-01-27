@@ -13,4 +13,5 @@ class BasePrompt(BaseModel):
     metadata: dict[str, Any] = {}
 
     def __hash__(self):
+        """Hash the prompt content."""
         return hash(self.content)
