@@ -9,7 +9,7 @@ pre-mr: format lint
 # Formats Code
 format:
     uv run ruff check --select I --fix src examples
-    uv run ruff format src
+    uv run ruff format src examples
 
 # Lints Code
 lint *options:

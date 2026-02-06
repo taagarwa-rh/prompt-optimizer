@@ -5,13 +5,14 @@ from urllib.request import urlopen
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
+from prompt_optimizer import BasePrompt
 from prompt_optimizer.optimizers import OPROOptimizer
-from prompt_optimizer.pipeline.base import BasePrompt
 
 load_dotenv()
 
 base_url = os.environ.get("OPENAI_BASE_URL")
 api_key = os.environ.get("OPENAI_API_KEY")
+
 
 def get_agent():
     """Get the LLM client for the AI system."""
@@ -19,11 +20,13 @@ def get_agent():
     client = ChatOpenAI(base_url=base_url, api_key=api_key, model=model, temperature=0.0, max_completion_tokens=5)
     return client
 
+
 def get_optimizer_client():
     """Get the LLM client for the optimizer."""
     model = "gpt-oss-20b"
     client = ChatOpenAI(base_url=base_url, api_key=api_key, model=model, temperature=1.0, max_completion_tokens=2000)
     return client
+
 
 def get_dataset():
     """Get validation and test data."""
@@ -36,6 +39,7 @@ def get_dataset():
     # Show a sample question
     print(train_set[0])
     return train_set, test_set
+
 
 def evaluator(prompt: BasePrompt, validation_set: list[dict]) -> list[str]:
     """Prompt evaluator function."""
@@ -50,7 +54,7 @@ def evaluator(prompt: BasePrompt, validation_set: list[dict]) -> list[str]:
         response = agent.invoke(messages)
         prediction = response.content.strip()
         predictions.append(prediction)
-    
+
         # Reward exact matches and collect errors
         actual = row["target"]
         if actual == prediction:
@@ -60,24 +64,27 @@ def evaluator(prompt: BasePrompt, validation_set: list[dict]) -> list[str]:
 
     # Compute the score
     score = num_correct / len(validation_set)
-    
+
     # Save the predictions and score
     prompt.metadata["predictions"] = predictions
-    
+
     return score
+
 
 def main():
     """Run optimization."""
     # Get datasets
     train_set, test_set = get_dataset()
-    
+
     # Demonstrate the baseline prompt
-    baseline_prompt = BasePrompt(content="You are a grammar expert. Please answer each question with '(A)' or '(B)' only, and no other thoughts.")
+    baseline_prompt = BasePrompt(
+        content="You are a grammar expert. Please answer each question with '(A)' or '(B)' only, and no other thoughts."
+    )
     baseline_prompt.score = evaluator(prompt=baseline_prompt, validation_set=train_set)
     test_score = evaluator(prompt=baseline_prompt, validation_set=test_set)
     predictions = baseline_prompt.metadata["predictions"]
     for row, response in zip(test_set[:3], predictions[:3]):
-        print(f"Question: {row["input"]}")
+        print(f"Question: {row['input']}")
         print(f"Response: {response}")
         print(f"Actual Answer: {row['target']}")
         print()
@@ -108,12 +115,13 @@ def main():
     score = evaluator(prompt=best_prompt, validation_set=test_set)
     predictions = best_prompt.metadata["predictions"]
     for row, response in zip(test_set[:3], predictions[:3]):
-        print(f"Question: {row["input"]}")
+        print(f"Question: {row['input']}")
         print(f"Response: {response}")
         print(f"Actual Answer: {row['target']}")
         print()
     print(f"Best Prompt Train Score: {best_prompt.score}")
     print(f"Best Prompt Test Score: {score}")
-    
+
+
 if __name__ == "__main__":
     main()
