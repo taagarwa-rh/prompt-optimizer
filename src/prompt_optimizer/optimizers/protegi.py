@@ -6,8 +6,9 @@ from typing import Callable, Literal, Optional, Union
 from rich.progress import track
 
 from prompt_optimizer import BasePrompt
-from prompt_optimizer.pipeline import BasePipeline
 from prompt_optimizer.types import ClientType, ScoreType, ValidationSetType
+
+from .base import BaseOptimizer
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ Instruction:
 {prompt}"""
 
 
-class ProtegiOptimizer(BasePipeline):
+class ProtegiOptimizer(BaseOptimizer):
     """
     ProTeGi Optimizer.
 

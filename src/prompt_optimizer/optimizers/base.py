@@ -11,7 +11,7 @@ from prompt_optimizer.types import ClientType, ScoreType, ValidationSetType
 logger = logging.getLogger(__name__)
 
 
-class BasePipeline(ABC):
+class BaseOptimizer(ABC):
     """
     Base pipeline for most APO algorithms.
 

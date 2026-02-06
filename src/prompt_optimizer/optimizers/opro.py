@@ -6,8 +6,9 @@ from typing import Callable, Optional, Union
 from rich.progress import track
 
 from prompt_optimizer import BasePrompt
-from prompt_optimizer.pipeline import BasePipeline
 from prompt_optimizer.types import ClientType, ScoreType, ValidationSetType
+
+from .base import BaseOptimizer
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ The following exemplars show how to apply your text: you replace <INS> in each i
 Write your new text that is different from the old ones and has a score as high as possible. Write the text in square brackets."""
 
 
-class OPROOptimizer(BasePipeline):
+class OPROOptimizer(BaseOptimizer):
     """
     OPRO Optimizer.
 
