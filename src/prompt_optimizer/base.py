@@ -1,8 +1,17 @@
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
 from .types import PromptContentType, ScoreType
+
+
+class PredictionError(BaseModel):
+    """Save prediction errors for error-based optimizers."""
+
+    input: Any
+    prediction: Any
+    actual: Any
+    feedback: Optional[str] = None
 
 
 class BasePrompt(BaseModel):
@@ -10,6 +19,7 @@ class BasePrompt(BaseModel):
 
     content: PromptContentType
     score: ScoreType = None
+    errors: list[PredictionError] = []
     metadata: dict[str, Any] = {}
 
     def __hash__(self):

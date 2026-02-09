@@ -1,4 +1,5 @@
 import logging
+import random
 import re
 from pathlib import Path
 from typing import Callable, Literal, Optional, Union
@@ -12,49 +13,61 @@ from .base import BaseOptimizer
 
 logger = logging.getLogger(__name__)
 
-GENERATE_GRADIENT_PROMPT_TEMPLATE = """I'm trying to write a zero-shot classifier prompt. My current prompt is:
+ERROR_STRING_TEMPLATE = """<{index}>
+The model's input is:
+{input}
+The model's response is:
+{prediction}
+The correct response is:
+{actual}"""
 
-"{prompt}"
+ERROR_FEEDBACK_TEMPLATE = """I'm writing prompts for a language model designed for a task.
+My current prompt is:
+{prompt}
 
 But this prompt gets the following examples wrong:
-
 {error_string}
 
-give {num_feedbacks} reasons why the prompt could have gotten these examples wrong. Wrap each reason with <START> and <END>."""
+For each wrong example, carefully examine each question and wrong answer step by step, provide comprehensive and different reasons why the prompt leads to the wrong answer. At last, based on all these reasons, summarize and list all the aspects that can improve the prompt."""
 
 
-INCORPORTATE_GRADIENT_PROMPT_TEMPLATE = """I'm trying to write a zero-shot classifier prompt. My current prompt is:
+STATE_TRANSIT_PROMPT_TEMPLATE = """I'm writing prompts for a language model designed for a task.
+My current prompt is:
+{prompt}
 
-"{prompt}"
-
-But it gets the following examples wrong:
-
+But this prompt gets the following examples wrong:
 {error_string}
 
-Based on these examples the problem with this prompt is that {gradient}. Based on the above information, give {steps_per_gradient} different improved prompts. Each prompt must be wrapped with <START> and <END>."""
+Based on these errors, the problems with this prompt and the reasons are:
+{error_feedback}
 
-RESAMPLING_PROMPT_TEMPLATE = """Generate a variation of the following instruction while keeping the semantic meaning.
+There is a list of former prompts including the current prompt, and each prompt is modified from its former prompts:
+{trajectory_prompts}
 
-Instruction:
+Based on the above information, please write {steps_per_gradient} new prompts following these guidelines:
 
-{prompt}"""
+1. The new prompts should solve the current prompt's problems.
+2. The new prompts should consider the list of prompts and evolve
+based on the current prompt.
+3. Each new prompt should be wrapped with <START> and <END>.
+The new prompts are:"""
 
 
-class ProtegiOptimizer(BaseOptimizer):
+class PromptAgentOptimizer(BaseOptimizer):
     """
-    ProTeGi Optimizer.
+    PromptAgent Optimizer.
 
-    Based on ProTeGi with Successive Rejects.
+    Based on PromptAgent: Strategic Planning with Language Models Enables Expert-level Prompt Optimization.
 
     ```
-    @misc{pryzant2023automaticpromptoptimizationgradient,
-        title={Automatic Prompt Optimization with "Gradient Descent" and Beam Search},
-        author={Reid Pryzant and Dan Iter and Jerry Li and Yin Tat Lee and Chenguang Zhu and Michael Zeng},
+    @misc{wang2023promptagentstrategicplanninglanguage,
+        title={PromptAgent: Strategic Planning with Language Models Enables Expert-level Prompt Optimization},
+        author={Xinyuan Wang and Chenxi Li and Zhen Wang and Fan Bai and Haotian Luo and Jiayou Zhang and Nebojsa Jojic and Eric P. Xing and Zhiting Hu},
         year={2023},
-        eprint={2305.03495},
+        eprint={2310.16427},
         archivePrefix={arXiv},
         primaryClass={cs.CL},
-        url={https://arxiv.org/abs/2305.03495},
+        url={https://arxiv.org/abs/2310.16427},
     }
     ```
     """
@@ -68,14 +81,14 @@ class ProtegiOptimizer(BaseOptimizer):
         max_depth: int,
         evaluator: Callable[[BasePrompt, ValidationSetType], ScoreType],
         output_path: Optional[Union[str, Path]] = None,
-        num_feedbacks: int = 3,
-        steps_per_gradient: int = 3,
-        num_resample: int = 3,
-        search_mode: Literal["greedy", "beam"] = "beam",
+        batch_size: int = 5,
+        expand_width: int = 3,
+        num_samples: int = 2,
+        search_mode: Literal["beam", "greedy"] = "beam",
         score_threshold: Optional[Union[float, int]] = None,
     ):
         """
-        Initialize the ProTeGi optimizer.
+        Initialize the PromptAgent Optimizer.
 
         Args:
             client (ClientType):
@@ -91,16 +104,15 @@ class ProtegiOptimizer(BaseOptimizer):
             output_path (Union[str, Path], optional):
                 Path to store run results. Should be a .jsonl file path.
                 If None, no outputs will be written to disk. Defaults to None.
-            num_feedbacks (int, optional):
-                Number of feedbacks to generate per prompt. Defaults to 3.
-            steps_per_gradient (int, optional):
-                Number of new prompts to generate per feedback. Defaults to 3.
-            num_resample (int, optional):
-                Number of Monte Carlo rewrites per new prompt generated from feedback. The paper recommends
-                setting this equal to steps_per_gradient. Defaults to 3.
-            search_mode (Literal["greedy", "beam"], optional):
+            batch_size (int, optional):
+                Number of errors to sample for each action / new prompt generation. Defaults to 5.
+            expand_width (int, optional):
+                Number of feedback actions to generate per prompt. Defaults to 3.
+            num_samples (int, optional):
+                Number of new prompts to generate per feedback action. Defaults to 2.
+            search_mode (Literal["beam", "greedy"], optional):
                 Mode for filtering prompt candidates after each step. "greedy" keeps all prompts from the previous step.
-                "beam" keeps only the highest scoring prompt from the previous step. Defaults to "beam".
+                "beam" keeps only the highest scoring prompt from each branch of the previous step. Defaults to "beam".
             score_threshold (float, optional):
                 Threshold for early convergence. If a prompt exceeds this score after any iteration, the optimization loop
                 immediately ends. If set to None, the optimization loop will not terminate early. Defaults to None.
@@ -114,11 +126,12 @@ class ProtegiOptimizer(BaseOptimizer):
             evaluator=evaluator,
             output_path=output_path,
         )
-        self.num_feedbacks = num_feedbacks
-        self.steps_per_gradient = steps_per_gradient
-        self.num_resample = num_resample
+        self.batch_size = batch_size
+        self.expand_width = expand_width
+        self.num_samples = num_samples
         self.search_mode = search_mode
         self.score_threshold = score_threshold
+        self.PARENT_KEY = "_parent"
 
     def _extract_responses(self, content: str) -> list[str]:
         """
@@ -154,49 +167,52 @@ class ProtegiOptimizer(BaseOptimizer):
         response = raw_response.content.strip()
         return response
 
+    def _map_trajectory(self, prompt: Optional[BasePrompt] = None):
+        """Map the trajectory of the prompt."""
+        if prompt is None:
+            return ""
+        parent = prompt.metadata.get(self.PARENT_KEY, None)
+        return (self._map_trajectory(parent) + "\n\n" + f"Prompt: {prompt.content}\nScore: {prompt.score}").strip()
+
     def generate_prompt_candidates(self, *, prompts: list[BasePrompt], **kwargs) -> list[BasePrompt]:
         """Generate prompt candidates using gradients."""
         prompt_candidates = []
         for prompt in track(prompts, description="Generating prompt candidates", transient=True):
-            # Build error string
-            error_string = "\n\n".join(
-                [f"Input: {error.input}, Prediction: {error.prediction}, Actual: {error.actual}" for error in prompt.errors]
-            )
+            if len(prompt.errors) == 0:
+                continue
 
-            # Generate gradients
-            template_kwargs = {
-                "prompt": prompt.content,
-                "error_string": error_string,
-                "num_feedbacks": self.num_feedbacks,
-                "steps_per_gradient": self.steps_per_gradient,
-            }
-            raw_gradients = self._generate(metaprompt_template=GENERATE_GRADIENT_PROMPT_TEMPLATE, template_kwargs=template_kwargs)
-            gradients = self._extract_responses(raw_gradients)
-            gradients = gradients[: self.num_feedbacks]
-            # Generate prompts for each gradient
-            for gradient in gradients:
-                template_kwargs.update({"gradient": gradient})
-                raw_new_prompts = self._generate(metaprompt_template=INCORPORTATE_GRADIENT_PROMPT_TEMPLATE, template_kwargs=template_kwargs)
-                new_prompts = self._extract_responses(raw_new_prompts)
-                new_prompts = new_prompts[: self.steps_per_gradient]
-                metadata = {"_origin_prompt": prompt.content, "_gradient": gradient, "_resampled": False}
-                new_prompt_candidates = [BasePrompt(content=new_prompt, metadata=metadata) for new_prompt in new_prompts]
+            # Map prompt trajectory
+            trajectory_prompts = self._map_trajectory(prompt=prompt)
 
-                # Resample new prompts
-                for new_prompt in new_prompts:
-                    varied_prompts = [
-                        self._generate(metaprompt_template=RESAMPLING_PROMPT_TEMPLATE, template_kwargs={"prompt": new_prompt})
-                        for _ in range(self.num_resample)
+            for _ in range(self.expand_width):
+                # Sample and collect errors into error string
+                error_sample = random.choices(prompt.errors, k=self.batch_size)
+                error_string = "\n\n".join(
+                    [
+                        ERROR_STRING_TEMPLATE.format(index=i + 1, input=error.input, prediction=error.prediction, actual=error.actual)
+                        for i, error in enumerate(error_sample)
                     ]
-                    metadata = {"_origin_prompt": new_prompt, "_gradient": None, "_resampled": True}
-                    varied_prompts = [BasePrompt(content=new_prompt) for new_prompt in varied_prompts]
-                    new_prompt_candidates.extend(varied_prompts)
+                )
+
+                # Generate actions
+                template_kwargs = {
+                    "prompt": prompt.content,
+                    "error_string": error_string,
+                    "steps_per_gradient": self.num_samples,
+                    "trajectory_prompts": trajectory_prompts,
+                }
+                action = self._generate(metaprompt_template=ERROR_FEEDBACK_TEMPLATE, template_kwargs=template_kwargs)
+
+                # Generate new prompts from the action
+                template_kwargs.update({"error_feedback": action})
+                raw_new_prompts = self._generate(metaprompt_template=STATE_TRANSIT_PROMPT_TEMPLATE, template_kwargs=template_kwargs)
+                new_prompts = self._extract_responses(raw_new_prompts)
+                new_prompts = new_prompts[: self.num_samples]
+                metadata = {self.PARENT_KEY: prompt, "_action": action, "_resampled": False}
+                new_prompt_candidates = [BasePrompt(content=new_prompt, metadata=metadata) for new_prompt in new_prompts]
 
                 # Save prompts to prompt candidates
                 prompt_candidates.extend(new_prompt_candidates)
-
-        # Add back the initial prompts to the pool
-        prompt_candidates = prompts + prompt_candidates
 
         return prompt_candidates
 
@@ -209,10 +225,24 @@ class ProtegiOptimizer(BaseOptimizer):
     def select_prompt_candidates(self, *, prompts: list[BasePrompt], validation_set: ValidationSetType) -> list[BasePrompt]:
         """Select prompt candidates according to the search mode."""
         self._score_prompts(prompts=prompts, validation_set=validation_set)
-        if self.search_mode == "greedy":
+        # If this is the first iteration, keep all prompts
+        if len(self._p) == 1:
             return prompts
+
+        # Otherwise, keep based on search_mode
+        elif self.search_mode == "greedy":
+            # Keep all prompts
+            return prompts
+
         elif self.search_mode == "beam":
-            return [self._get_best_prompt(prompts=prompts)]
+            # Select the best prompt in each branch
+            # Split prompts by parent
+            parent_to_prompts = {prompt.metadata[self.PARENT_KEY]: [] for prompt in prompts}
+            for prompt in prompts:
+                parent_to_prompts[prompt.metadata[self.PARENT_KEY]].append(prompt)
+
+            # Get the best prompt from each parent
+            return [self._get_best_prompt(prompts=branch_prompts) for _, branch_prompts in parent_to_prompts.items()]
 
     def check_early_convergence(self, *, all_prompts: list[list[BasePrompt]]):
         """Check if the early convergence criteria is met."""
