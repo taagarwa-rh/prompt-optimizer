@@ -1,26 +1,22 @@
 ---
-title: ProTeGi
+title: PromptAgent
 ---
 
-# Prompt Optimization with Textual Gradients (ProTeGi)
+# PromptAgent
 
 ## About
 
-![](./static/protegi.png)
+![](./static/promptagent.png)
 
-Prompt Optimization with Textual Gradients (ProTeGi) starts from an initial prompt and iteratively updates using feedback from the language model, called "gradients".
-The initial prompt is scored using the validation set and the failures are collected.
-The failures are described to the language model, and the language model is asked to provide multiple feedbacks (gradients) to describe how the prompt should be improved.
-The language model then uses each of these gradients to generate a number of new prompts, and these new prompts are scored.
-Then the language model generates variations
-The top scoring prompt is retained and becomes the initial prompt for the next iteration. 
-The iterations continue until the maximum iteration depth is reached or the score threshold is exceeded.
-
-A variation of this using "greedy" search instead keeps all prompts at each iteration, leading to larger trees of prompts.
+PromptAgent optimizes a prompt by scoring, generating feedback, and generating new prompts based on the feedback.
+PromptAgent starts from a seed prompt with known errors on the training data.
+At each step, a scored prompt and a sample of its errors are passed to a language model to produce a feedback "action".
+Then the prompt, errors, trajectory, and feedback action are passed to a language model to produce new prompts.
+These new prompts are scored and the best prompt from each branch (`search_mode="beam"`) or all prompts (`search_mode="greedy"`) are retained for the next step
 
 ## Usage
 
-The `ProtegiOptimizer` requires a description of the failures after each step.
+The `PromptAgentOptimizer` requires a description of the failures after each step.
 You must provide this feedback in your evaluator by capturing errors and saving them in the prompt object's `errors` attribute.
 
 > [!IMPORTANT] Important Note
@@ -29,7 +25,7 @@ You must provide this feedback in your evaluator by capturing errors and saving 
 ```python
 from lagnchain_openai import ChatOpenAI
 from prompt_optimizer import BasePrompt, PredictionError
-from prompt_optimizer.optimizers import ProtegiOptimizer
+from prompt_optimizer.optimizers import PromptAgentOptimizer
 
 # Simple QA validation set
 validation_set = [
@@ -63,7 +59,7 @@ def evaluator(prompt: BasePrompt, validation_set: list[dict]) -> list[str]:
             num_correct += 1
         else:
             num_correct += 0
-            # Save prediction error - Required for ProtegiOptimizer
+            # Save prediction error - Required for PromptAgentOptimizer
             error = PredictionError(input=question, prediction=prediction, actual=actual, feedback=None)
             prompt.errors.append(error)
     
@@ -73,7 +69,7 @@ def evaluator(prompt: BasePrompt, validation_set: list[dict]) -> list[str]:
     return score
 
 # Initialize the optimizer
-optimizer = ProtegiOptimizer(
+optimizer = PromptAgentOptimizer(
     client=client,
     seed_prompts=[baseline_prompt],
     validation_set=validation_set,
@@ -88,14 +84,14 @@ optimized_prompt = optimizer.run()
 ## Citation
 
 ```
-@misc{pryzant2023automaticpromptoptimizationgradient,
-    title={Automatic Prompt Optimization with "Gradient Descent" and Beam Search}, 
-    author={Reid Pryzant and Dan Iter and Jerry Li and Yin Tat Lee and Chenguang Zhu and Michael Zeng},
+@misc{wang2023promptagentstrategicplanninglanguage,
+    title={PromptAgent: Strategic Planning with Language Models Enables Expert-level Prompt Optimization},
+    author={Xinyuan Wang and Chenxi Li and Zhen Wang and Fan Bai and Haotian Luo and Jiayou Zhang and Nebojsa Jojic and Eric P. Xing and Zhiting Hu},
     year={2023},
-    eprint={2305.03495},
+    eprint={2310.16427},
     archivePrefix={arXiv},
     primaryClass={cs.CL},
-    url={https://arxiv.org/abs/2305.03495}, 
+    url={https://arxiv.org/abs/2310.16427},
 }
 ```
 
