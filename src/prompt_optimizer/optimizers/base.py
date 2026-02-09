@@ -133,6 +133,7 @@ class BaseOptimizer(ABC):
         Returns:
             list[BasePrompts]: The scored prompts with the 'score' field set.
         """
+        # BUG: Scores being assigned to existing objects instead of returning new ones
         for prompt in track(prompts, description="Evaluating Prompts", transient=True):
             if prompt.score is None:
                 try:
@@ -165,7 +166,7 @@ class BaseOptimizer(ABC):
         """Run the optimization pipeline."""
         # Score seed_prompts
         self.seed_prompts = self._score_prompts(self.seed_prompts, self.validation_set)
-        
+
         # Initialize objects
         self._p = [self.seed_prompts]
         self._g = [self.seed_prompts]
