@@ -158,10 +158,15 @@ class ProtegiOptimizer(BaseOptimizer):
         """Generate prompt candidates using gradients."""
         prompt_candidates = []
         for prompt in track(prompts, description="Generating prompt candidates", transient=True):
+            # Build error string
+            error_string = "\n\n".join(
+                [f"Input: {error.input}, Prediction: {error.prediction}, Actual: {error.actual}" for error in prompt.errors]
+            )
+
             # Generate gradients
             template_kwargs = {
                 "prompt": prompt.content,
-                "error_string": prompt.metadata.get("error_string", ""),
+                "error_string": error_string,
                 "num_feedbacks": self.num_feedbacks,
                 "steps_per_gradient": self.steps_per_gradient,
             }
