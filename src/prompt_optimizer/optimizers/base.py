@@ -163,9 +163,13 @@ class BaseOptimizer(ABC):
 
     def run(self) -> BasePrompt:
         """Run the optimization pipeline."""
+        # Score seed_prompts
+        self.seed_prompts = self._score_prompts(self.seed_prompts, self.validation_set)
+        
         # Initialize objects
         self._p = [self.seed_prompts]
         self._g = [self.seed_prompts]
+
         # Iterate until max depth
         for t in track(range(1, self.max_depth + 1), description="Step", total=self.max_depth):
             # Generate prompt candidates
