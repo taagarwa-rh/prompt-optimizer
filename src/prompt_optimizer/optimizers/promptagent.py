@@ -225,7 +225,12 @@ class PromptAgentOptimizer(BaseOptimizer):
     def select_prompt_candidates(self, *, prompts: list[BasePrompt], validation_set: ValidationSetType) -> list[BasePrompt]:
         """Select prompt candidates according to the search mode."""
         self._score_prompts(prompts=prompts, validation_set=validation_set)
-        if self.search_mode == "greedy":
+        # If this is the first iteration, keep all prompts
+        if len(self._p) == 1:
+            return prompts
+
+        # Otherwise, keep based on search_mode
+        elif self.search_mode == "greedy":
             # Keep all prompts
             return prompts
 
