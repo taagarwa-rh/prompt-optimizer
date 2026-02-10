@@ -5,7 +5,7 @@ from typing import Callable, Optional, Union
 
 from rich.progress import track
 
-from prompt_optimizer import BasePrompt
+from prompt_optimizer import Prompt
 from prompt_optimizer.types import ClientType, ScoreType, ValidationSetType
 
 from .base import BaseOptimizer
@@ -48,10 +48,10 @@ class OPROOptimizer(BaseOptimizer):
         self,
         *,
         client: ClientType,
-        seed_prompts: list[BasePrompt],
+        seed_prompts: list[Prompt],
         validation_set: ValidationSetType,
         max_depth: int,
-        evaluator: Callable[[BasePrompt, ValidationSetType], ScoreType],
+        evaluator: Callable[[Prompt, ValidationSetType], ScoreType],
         output_path: Optional[Union[str, Path]] = None,
         input_field: str,
         output_field: str,
@@ -66,13 +66,13 @@ class OPROOptimizer(BaseOptimizer):
         Args:
             client (ClientType):
                 Language model client to use for prompt generation and feedback.
-            seed_prompts (list[BasePrompt]):
+            seed_prompts (list[Prompt]):
                 List of prompts to seed generation.
             validation_set (ValidationSetType):
                 Set of examples to evaluate the prompt on.
             max_depth (int):
                 Maximum iteration depth for prompt generation.
-            evaluator (Callable[[BasePrompt, ValidationSetType], ScoreType]):
+            evaluator (Callable[[Prompt, ValidationSetType], ScoreType]):
                 Function that takes a prompt and the validation data and returns a score.
             output_path (Union[str, Path], optional):
                 Path to store run results. Should be a .jsonl file path.
@@ -152,7 +152,7 @@ class OPROOptimizer(BaseOptimizer):
         response = raw_response.content.strip()
         return response
 
-    def generate_prompt_candidates(self, *, prompts: list[BasePrompt], validation_set: ValidationSetType) -> list[BasePrompt]:
+    def generate_prompt_candidates(self, *, prompts: list[Prompt], validation_set: ValidationSetType) -> list[Prompt]:
         """Generate prompt candidates."""
         # Sort prompts by score, highest to lowest
         sorted_prompts = sorted(prompts, key=lambda x: x.score, reverse=True)[: self.max_demonstration_prompts]
@@ -174,19 +174,19 @@ class OPROOptimizer(BaseOptimizer):
             response = self._generate(metaprompt_template=METAPROMPT_TEMPLATE, template_kwargs=template_kwargs)
             prompt_candidate = self._extract_response(response)
 
-            prompt_candidates.append(BasePrompt(content=prompt_candidate))
+            prompt_candidates.append(Prompt(content=prompt_candidate))
 
         # Return the original prompts plus the new candidates
         return prompts + prompt_candidates
 
-    def select_prompt_candidates(self, *, prompts: list[BasePrompt], validation_set: ValidationSetType) -> list[BasePrompt]:
+    def select_prompt_candidates(self, *, prompts: list[Prompt], validation_set: ValidationSetType) -> list[Prompt]:
         """Select prompt candidates."""
         # Score the prompts
         self._score_prompts(prompts=prompts, validation_set=validation_set)
         # Return all prompts, no filtering is done
         return prompts
 
-    def check_early_convergence(self, *, all_prompts: list[list[BasePrompt]]) -> bool:
+    def check_early_convergence(self, *, all_prompts: list[list[Prompt]]) -> bool:
         """Detect early convergence."""
         if self.score_threshold is None:
             return False
@@ -200,13 +200,13 @@ class OPROOptimizer(BaseOptimizer):
             return True
         return False
 
-    def _get_best_prompt(self, prompts: list[BasePrompt]):
+    def _get_best_prompt(self, prompts: list[Prompt]):
         """Get the highest scoring prompt."""
         if any(prompt.score is None for prompt in prompts):
             raise ValueError("All prompts must be scored before calling this function.")
         return max(prompts, key=lambda x: x.score)
 
-    def select_best_prompt(self, all_prompts: list[list[BasePrompt]]) -> BasePrompt:
+    def select_best_prompt(self, all_prompts: list[list[Prompt]]) -> Prompt:
         """Select the top scoring prompt."""
         # Flatten all iterations
         prompts = sum(all_prompts, start=[])

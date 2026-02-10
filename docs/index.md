@@ -46,10 +46,10 @@ For example, a simple QA evaluator might look like:
 from datetime import datetime
 
 from langchain_openai import ChatOpenAI
-from prompt_optimizer import BasePrompt
+from prompt_optimizer import Prompt
 
 
-def evaluator(prompt: BasePrompt, validation_set: list[dict]) -> float:
+def evaluator(prompt: Prompt, validation_set: list[dict]) -> float:
     """Prompt evaluator function."""
     predictions = []
     num_correct = 0
@@ -86,6 +86,7 @@ Once you have your **validation set** and **evaluator** defined, you can set up 
 Select one of the available optimizers to learn more about its usage:
 
 - [OPRO](./library/optimizers/opro.md) (Recommended)
+- [PromptAgent](./library/optimizers/promptagent.md)
 - [ProTeGi](./library/optimizers/protegi.md)
 - [APE](./library/optimizers/ape.md)
 

@@ -24,7 +24,7 @@ You must provide this feedback in your evaluator by capturing errors and saving 
 
 ```python
 from lagnchain_openai import ChatOpenAI
-from prompt_optimizer import BasePrompt, PredictionError
+from prompt_optimizer import PredictionError, Prompt
 from prompt_optimizer.optimizers import PromptAgentOptimizer
 
 # Simple QA validation set
@@ -40,7 +40,7 @@ validation_set = [
 client = ChatOpenAI(model="gpt-5", temperature=0.7)
 
 # Evaluator function
-def evaluator(prompt: BasePrompt, validation_set: list[dict]) -> list[str]:
+def evaluator(prompt: Prompt, validation_set: list[dict]) -> list[str]:
     """Prompt evaluator function."""
     # Run the prompt through the AI system
     predictions = []

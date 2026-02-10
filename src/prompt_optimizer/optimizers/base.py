@@ -5,7 +5,7 @@ from typing import Callable, Optional, Union
 
 from rich.progress import track
 
-from prompt_optimizer import BasePrompt
+from prompt_optimizer import Prompt
 from prompt_optimizer.types import ClientType, ScoreType, ValidationSetType
 
 logger = logging.getLogger(__name__)
@@ -22,10 +22,10 @@ class BaseOptimizer(ABC):
         self,
         *,
         client: ClientType,
-        seed_prompts: list[BasePrompt],
+        seed_prompts: list[Prompt],
         validation_set: ValidationSetType,
         max_depth: int,
-        evaluator: Callable[[BasePrompt, ValidationSetType], ScoreType],
+        evaluator: Callable[[Prompt, ValidationSetType], ScoreType],
         output_path: Optional[Union[str, Path]] = None,
     ):
         """
@@ -34,13 +34,13 @@ class BaseOptimizer(ABC):
         Args:
             client (ClientType):
                 Language model client to use for prompt generation and feedback.
-            seed_prompts (list[BasePrompt]):
+            seed_prompts (list[Prompt]):
                 List of prompts to seed generation.
             validation_set (ValidationSetType):
                 Set of examples to evaluate the prompt on.
             max_depth (int):
                 Maximum iteration depth for prompt generation.
-            evaluator (Callable[[BasePrompt, ValidationSetType], ScoreType]):
+            evaluator (Callable[[Prompt, ValidationSetType], ScoreType]):
                 Function that takes a prompt and the validation data and returns a score.
             output_path (Union[str, Path], optional):
                 Path to store run results. Should be a .jsonl file path.
@@ -53,12 +53,12 @@ class BaseOptimizer(ABC):
         self.max_depth = max_depth
         self.evaluator = evaluator
         self.output_path = output_path
-        self._p: list[list[BasePrompt]] = []
-        self._g: list[list[BasePrompt]] = []
+        self._p: list[list[Prompt]] = []
+        self._g: list[list[Prompt]] = []
 
     ## Class Utilities ##
 
-    def get_all_prompts(self, include_candidates: bool = False) -> list[list[BasePrompt]]:
+    def get_all_prompts(self, include_candidates: bool = False) -> list[list[Prompt]]:
         """
         Get all the prompts from the latest training run.
 
@@ -73,7 +73,7 @@ class BaseOptimizer(ABC):
                 Defaults to False.
 
         Returns:
-            list[list[BasePrompt]]:
+            list[list[Prompt]]:
                 List of lists where each list contains the prompts from each iteration.
                 E.g. list[0] contains prompts from the first iteration, list[1] the second, etc.
                 If include_candidates is False, each inner list contains only the retained prompts at each iteration.
@@ -107,12 +107,12 @@ class BaseOptimizer(ABC):
                 f.write("\n")
 
     ## Scoring ##
-    def _evaluate(self, prompt: BasePrompt, validation_set: ValidationSetType) -> ScoreType:
+    def _evaluate(self, prompt: Prompt, validation_set: ValidationSetType) -> ScoreType:
         """
         Evaluate the prompt using the evaluator function.
 
         Args:
-            prompt (BasePrompt): Prompt to pass as a keyword argument `prompt` to the evaluator.
+            prompt (Prompt): Prompt to pass as a keyword argument `prompt` to the evaluator.
             validation_set (ValidationSetType): Set of examples to evaluate the prompt on.
 
         Returns:
@@ -122,16 +122,16 @@ class BaseOptimizer(ABC):
         score = self.evaluator(prompt=prompt, validation_set=validation_set)
         return score
 
-    def _score_prompts(self, prompts: list[BasePrompt], validation_set: ValidationSetType) -> list[BasePrompt]:
+    def _score_prompts(self, prompts: list[Prompt], validation_set: ValidationSetType) -> list[Prompt]:
         """
         Score all the prompts using the evaluator.
 
         Args:
-            prompts (list[BasePrompt]): The prompts to score.
+            prompts (list[Prompt]): The prompts to score.
             validation_set (ValidationSetType): Set of examples to evaluate the prompt on.
 
         Returns:
-            list[BasePrompts]: The scored prompts with the 'score' field set.
+            list[Prompts]: The scored prompts with the 'score' field set.
         """
         # BUG: Scores being assigned to existing objects instead of returning new ones
         for prompt in track(prompts, description="Evaluating Prompts", transient=True):
@@ -146,23 +146,23 @@ class BaseOptimizer(ABC):
 
     ## Optimization Loop ##
 
-    def generate_prompt_candidates(self, *, prompts: list[BasePrompt], validation_set: ValidationSetType) -> list[BasePrompt]:
+    def generate_prompt_candidates(self, *, prompts: list[Prompt], validation_set: ValidationSetType) -> list[Prompt]:
         """Generate prompt candidates."""
         raise NotImplementedError("This method must be implemented by the child class")
 
-    def select_prompt_candidates(self, *, prompts: list[BasePrompt], validation_set: ValidationSetType) -> list[BasePrompt]:
+    def select_prompt_candidates(self, *, prompts: list[Prompt], validation_set: ValidationSetType) -> list[Prompt]:
         """Select prompt candidates."""
         raise NotImplementedError("This method must be implemented by the child class")
 
-    def check_early_convergence(self, *, all_prompts: list[list[BasePrompt]]) -> bool:
+    def check_early_convergence(self, *, all_prompts: list[list[Prompt]]) -> bool:
         """Detect early convergence."""
         raise NotImplementedError("This method must be implemented by the child class")
 
-    def select_best_prompt(self, all_prompts: list[list[BasePrompt]]) -> BasePrompt:
+    def select_best_prompt(self, all_prompts: list[list[Prompt]]) -> Prompt:
         """Select the best prompt."""
         raise NotImplementedError("This method must be implemented by the child class")
 
-    def run(self) -> BasePrompt:
+    def run(self) -> Prompt:
         """Run the optimization pipeline."""
         # Score seed_prompts
         self.seed_prompts = self._score_prompts(self.seed_prompts, self.validation_set)

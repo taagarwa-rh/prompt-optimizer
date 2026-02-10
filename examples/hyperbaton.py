@@ -5,7 +5,7 @@ from urllib.request import urlopen
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
-from prompt_optimizer import BasePrompt
+from prompt_optimizer import Prompt
 from prompt_optimizer.optimizers import OPROOptimizer
 
 load_dotenv()
@@ -41,7 +41,7 @@ def get_dataset():
     return train_set, test_set
 
 
-def evaluator(prompt: BasePrompt, validation_set: list[dict]) -> list[str]:
+def evaluator(prompt: Prompt, validation_set: list[dict]) -> list[str]:
     """Prompt evaluator function."""
     # Run the prompt through the AI system
     predictions = []
@@ -77,7 +77,7 @@ def main():
     train_set, test_set = get_dataset()
 
     # Demonstrate the baseline prompt
-    baseline_prompt = BasePrompt(
+    baseline_prompt = Prompt(
         content="You are a grammar expert. Please answer each question with '(A)' or '(B)' only, and no other thoughts."
     )
     baseline_prompt.score = evaluator(prompt=baseline_prompt, validation_set=train_set)

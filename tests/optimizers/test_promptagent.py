@@ -1,7 +1,7 @@
 import pytest
 
 from prompt_optimizer.optimizers.promptagent import PromptAgentOptimizer
-from prompt_optimizer.base import BasePrompt
+from prompt_optimizer.base import Prompt
 
 class TestPromptAgentOptimizer:
     
@@ -30,9 +30,9 @@ class TestPromptAgentOptimizer:
     def test_map_trajectory(self, mock_cls: PromptAgentOptimizer):
         """Test prompt trajectory mapping."""
         
-        prompt1 = BasePrompt(content="What is the capital of France?", score=0.7)
-        prompt2 = BasePrompt(content="What is the largest city in France?", score=0.8, metadata={mock_cls.PARENT_KEY: prompt1})
-        prompt3 = BasePrompt(content="What is France's capital city?", score=0.9, metadata={mock_cls.PARENT_KEY: prompt2})
+        prompt1 = Prompt(content="What is the capital of France?", score=0.7)
+        prompt2 = Prompt(content="What is the largest city in France?", score=0.8, metadata={mock_cls.PARENT_KEY: prompt1})
+        prompt3 = Prompt(content="What is France's capital city?", score=0.9, metadata={mock_cls.PARENT_KEY: prompt2})
         
         # Base case - no parents, no trajectory
         result = mock_cls._map_trajectory(prompt=prompt1)
@@ -64,15 +64,15 @@ class TestPromptAgentOptimizer:
         
         # Create branches of prompts
         # In each branch, child1 is the best prompt, and should be selected when search_mode == "beam"
-        parent1 = BasePrompt(content="What is the capital of France?")
-        child1_1 = BasePrompt(content="What is the largest city in France?", score=0.9, metadata={mock_cls.PARENT_KEY: parent1})
-        child2_1 = BasePrompt(content="What is the largest city in Spain?", score=0.8, metadata={mock_cls.PARENT_KEY: parent1})
-        child3_1 = BasePrompt(content="What is the capital?", score=0.7, metadata={mock_cls.PARENT_KEY: parent1})
+        parent1 = Prompt(content="What is the capital of France?")
+        child1_1 = Prompt(content="What is the largest city in France?", score=0.9, metadata={mock_cls.PARENT_KEY: parent1})
+        child2_1 = Prompt(content="What is the largest city in Spain?", score=0.8, metadata={mock_cls.PARENT_KEY: parent1})
+        child3_1 = Prompt(content="What is the capital?", score=0.7, metadata={mock_cls.PARENT_KEY: parent1})
         
-        parent2 = BasePrompt(content="What is the largest planet in the Solar System?")
-        child1_2 = BasePrompt(content="What is the largest planet?", score=0.9, metadata={mock_cls.PARENT_KEY: parent2})
-        child2_2 = BasePrompt(content="What is the largest gas giant?", score=0.8, metadata={mock_cls.PARENT_KEY: parent2})
-        child3_2 = BasePrompt(content="What is Jupiter?", score=0.7, metadata={mock_cls.PARENT_KEY: parent2})
+        parent2 = Prompt(content="What is the largest planet in the Solar System?")
+        child1_2 = Prompt(content="What is the largest planet?", score=0.9, metadata={mock_cls.PARENT_KEY: parent2})
+        child2_2 = Prompt(content="What is the largest gas giant?", score=0.8, metadata={mock_cls.PARENT_KEY: parent2})
+        child3_2 = Prompt(content="What is Jupiter?", score=0.7, metadata={mock_cls.PARENT_KEY: parent2})
         
         # Select prompt candidates with search_mode == "beam"
         mock_cls.search_mode = "beam"
@@ -82,7 +82,7 @@ class TestPromptAgentOptimizer:
         # Unit test
         assert isinstance(result, list)
         assert len(result) == 2
-        assert all(isinstance(prompt, BasePrompt) for prompt in result)
+        assert all(isinstance(prompt, Prompt) for prompt in result)
         
         # Assert child1 (the best prompt) was selected in both branches
         assert set(result) == {child1_1, child1_2}
@@ -95,7 +95,7 @@ class TestPromptAgentOptimizer:
         # Unit test
         assert isinstance(result, list)
         assert len(result) == 6
-        assert all(isinstance(prompt, BasePrompt) for prompt in result)
+        assert all(isinstance(prompt, Prompt) for prompt in result)
         
         # Assert all children were kept
         assert set(result) == set(prompts)

@@ -1,8 +1,8 @@
 """Prompt Optimizer."""
 
-from .base import BasePrompt, PredictionError
+from .base import PredictionError, Prompt
 
 __all__ = [
-    "BasePrompt",
+    "Prompt",
     "PredictionError",
 ]

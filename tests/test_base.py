@@ -2,14 +2,14 @@ import pytest
 
 from pydantic import ValidationError
 
-from prompt_optimizer.base import BasePrompt, PredictionError
+from prompt_optimizer.base import Prompt, PredictionError
 
 
-class TestBasePrompt:
+class TestPrompt:
     
     def test_init(self):
         """Test initialization schemes."""
-        result = BasePrompt(content="Hello, world!", score=0.9)
+        result = Prompt(content="Hello, world!", score=0.9)
         assert result.content == "Hello, world!"
         assert result.score == 0.9
         assert isinstance(result.metadata, dict)

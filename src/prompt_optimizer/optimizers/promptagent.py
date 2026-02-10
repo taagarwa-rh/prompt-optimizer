@@ -6,7 +6,7 @@ from typing import Callable, Literal, Optional, Union
 
 from rich.progress import track
 
-from prompt_optimizer import BasePrompt
+from prompt_optimizer import Prompt
 from prompt_optimizer.types import ClientType, ScoreType, ValidationSetType
 
 from .base import BaseOptimizer
@@ -76,10 +76,10 @@ class PromptAgentOptimizer(BaseOptimizer):
         self,
         *,
         client: ClientType,
-        seed_prompts: list[BasePrompt],
+        seed_prompts: list[Prompt],
         validation_set: ValidationSetType,
         max_depth: int,
-        evaluator: Callable[[BasePrompt, ValidationSetType], ScoreType],
+        evaluator: Callable[[Prompt, ValidationSetType], ScoreType],
         output_path: Optional[Union[str, Path]] = None,
         batch_size: int = 5,
         expand_width: int = 3,
@@ -93,13 +93,13 @@ class PromptAgentOptimizer(BaseOptimizer):
         Args:
             client (ClientType):
                 Language model client to use for prompt generation and feedback.
-            seed_prompts (list[BasePrompt]):
+            seed_prompts (list[Prompt]):
                 List of prompts to seed generation.
             validation_set (ValidationSetType):
                 Set of examples to evaluate the prompt on.
             max_depth (int):
                 Maximum iteration depth for prompt generation.
-            evaluator (Callable[[BasePrompt, ValidationSetType], ScoreType]):
+            evaluator (Callable[[Prompt, ValidationSetType], ScoreType]):
                 Function that takes a prompt and the validation data and returns a score.
             output_path (Union[str, Path], optional):
                 Path to store run results. Should be a .jsonl file path.
@@ -167,14 +167,14 @@ class PromptAgentOptimizer(BaseOptimizer):
         response = raw_response.content.strip()
         return response
 
-    def _map_trajectory(self, prompt: Optional[BasePrompt] = None):
+    def _map_trajectory(self, prompt: Optional[Prompt] = None):
         """Map the trajectory of the prompt."""
         if prompt is None:
             return ""
         parent = prompt.metadata.get(self.PARENT_KEY, None)
         return (self._map_trajectory(parent) + "\n\n" + f"Prompt: {prompt.content}\nScore: {prompt.score}").strip()
 
-    def generate_prompt_candidates(self, *, prompts: list[BasePrompt], **kwargs) -> list[BasePrompt]:
+    def generate_prompt_candidates(self, *, prompts: list[Prompt], **kwargs) -> list[Prompt]:
         """Generate prompt candidates using gradients."""
         prompt_candidates = []
         for prompt in track(prompts, description="Generating prompt candidates", transient=True):
@@ -209,20 +209,20 @@ class PromptAgentOptimizer(BaseOptimizer):
                 new_prompts = self._extract_responses(raw_new_prompts)
                 new_prompts = new_prompts[: self.num_samples]
                 metadata = {self.PARENT_KEY: prompt, "_action": action, "_resampled": False}
-                new_prompt_candidates = [BasePrompt(content=new_prompt, metadata=metadata) for new_prompt in new_prompts]
+                new_prompt_candidates = [Prompt(content=new_prompt, metadata=metadata) for new_prompt in new_prompts]
 
                 # Save prompts to prompt candidates
                 prompt_candidates.extend(new_prompt_candidates)
 
         return prompt_candidates
 
-    def _get_best_prompt(self, prompts: list[BasePrompt]):
+    def _get_best_prompt(self, prompts: list[Prompt]):
         """Get the highest scoring prompt."""
         if any(prompt.score is None for prompt in prompts):
             raise ValueError("All prompts must be scored before calling this function.")
         return max(prompts, key=lambda x: x.score)
 
-    def select_prompt_candidates(self, *, prompts: list[BasePrompt], validation_set: ValidationSetType) -> list[BasePrompt]:
+    def select_prompt_candidates(self, *, prompts: list[Prompt], validation_set: ValidationSetType) -> list[Prompt]:
         """Select prompt candidates according to the search mode."""
         self._score_prompts(prompts=prompts, validation_set=validation_set)
         # If this is the first iteration, keep all prompts
@@ -244,7 +244,7 @@ class PromptAgentOptimizer(BaseOptimizer):
             # Get the best prompt from each parent
             return [self._get_best_prompt(prompts=branch_prompts) for _, branch_prompts in parent_to_prompts.items()]
 
-    def check_early_convergence(self, *, all_prompts: list[list[BasePrompt]]):
+    def check_early_convergence(self, *, all_prompts: list[list[Prompt]]):
         """Check if the early convergence criteria is met."""
         if self.score_threshold is None:
             return False
@@ -258,7 +258,7 @@ class PromptAgentOptimizer(BaseOptimizer):
             return True
         return False
 
-    def select_best_prompt(self, *, all_prompts: list[list[BasePrompt]]) -> BasePrompt:
+    def select_best_prompt(self, *, all_prompts: list[list[Prompt]]) -> Prompt:
         """Select the top scoring prompt."""
         # Flatten all iterations
         prompts = sum(all_prompts, start=[])

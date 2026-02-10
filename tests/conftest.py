@@ -12,8 +12,8 @@ def mock_client():
 
 @pytest.fixture()
 def mock_seed_prompts():
-    from prompt_optimizer.base import BasePrompt
-    seed_prompts = [BasePrompt(content="test")]
+    from prompt_optimizer.base import Prompt
+    seed_prompts = [Prompt(content="test")]
     return seed_prompts
 
 
@@ -31,9 +31,9 @@ def mock_validation_set():
 
 @pytest.fixture()
 def exact_match_evaluator():
-    from prompt_optimizer.base import PredictionError, BasePrompt
+    from prompt_optimizer.base import PredictionError, Prompt
     
-    def evaluator(prompt: BasePrompt, validation_set: list[dict]):
+    def evaluator(prompt: Prompt, validation_set: list[dict]):
         # Run the prompt through the AI system
         predictions = []
         num_correct = 0

@@ -39,7 +39,7 @@ class PredictionError(BaseModel):
         return self
 
 
-class BasePrompt(BaseModel):
+class Prompt(BaseModel):
     """
     Base prompt object.
 
