@@ -73,6 +73,7 @@ class ProtegiOptimizer(BaseOptimizer):
         num_resample: int = 3,
         search_mode: Literal["greedy", "beam"] = "beam",
         score_threshold: Optional[Union[float, int]] = None,
+        **kwargs,
     ):
         """
         Initialize the ProTeGi optimizer.
@@ -104,6 +105,8 @@ class ProtegiOptimizer(BaseOptimizer):
             score_threshold (float, optional):
                 Threshold for early convergence. If a prompt exceeds this score after any iteration, the optimization loop
                 immediately ends. If set to None, the optimization loop will not terminate early. Defaults to None.
+            kwargs:
+                Additional keyword arguments.
 
         """
         super().__init__(
