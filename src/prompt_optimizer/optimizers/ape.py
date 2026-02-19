@@ -59,6 +59,7 @@ class APEOptimizer(BaseOptimizer):
         num_exemplars: int = 5,
         k_percent: float = 0.5,
         score_threshold: Optional[Union[float, int]] = None,
+        **kwargs,
     ):
         """
         Initialize the APE optimizer.
@@ -92,6 +93,9 @@ class APEOptimizer(BaseOptimizer):
             score_threshold (float, optional):
                 Threshold for early convergence. If a prompt exceeds this score after any iteration, the optimization loop
                 immediately ends. If set to None, the optimization loop will not terminate early. Defaults to None.
+            kwargs:
+                Additional keyword arguments.
+
         """
         super().__init__(
             client=client,

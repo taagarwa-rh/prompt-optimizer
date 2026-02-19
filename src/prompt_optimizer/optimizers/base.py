@@ -27,6 +27,7 @@ class BaseOptimizer(ABC):
         max_depth: int,
         evaluator: Callable[[Prompt, ValidationSetType], ScoreType],
         output_path: Optional[Union[str, Path]] = None,
+        **kwargs,
     ):
         """
         Initialize the inference evaluation pipeline.
@@ -45,6 +46,8 @@ class BaseOptimizer(ABC):
             output_path (Union[str, Path], optional):
                 Path to store run results. Should be a .jsonl file path.
                 If None, no outputs will be written to disk. Defaults to None.
+            kwargs:
+                Additional keyword arguments.
 
         """
         self.client = client
