@@ -13,8 +13,6 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
     set +a
 fi
 
-export MLFLOW_EXPERIMENT_NAME="${MLFLOW_EXPERIMENT_NAME:-prompt-optimizer}"
-
 echo "Traces:    ${MLFLOW_TRACKING_URI:-(not set)}"
 
 exec $PYTHON benchmark.py --config config.yaml
