@@ -21,6 +21,14 @@ The model's response is:
 The correct response is:
 {actual}"""
 
+ERROR_STRING_FEEDBACK_TEMPLATE = """<{index}>
+The model's input is:
+{input}
+The model's response is:
+{prediction}
+The feedback is:
+{feedback}"""
+
 ERROR_FEEDBACK_TEMPLATE = """I'm writing prompts for a language model designed for a task.
 My current prompt is:
 {prompt}
@@ -192,7 +200,9 @@ class PromptAgentOptimizer(BaseOptimizer):
                 error_sample = random.choices(prompt.errors, k=self.batch_size)
                 error_string = "\n\n".join(
                     [
-                        ERROR_STRING_TEMPLATE.format(index=i + 1, input=error.input, prediction=error.prediction, actual=error.actual)
+                        ERROR_STRING_FEEDBACK_TEMPLATE.format(index=i + 1, input=error.input, prediction=error.prediction, feedback=error.feedback)
+                        if error.feedback is not None
+                        else ERROR_STRING_TEMPLATE.format(index=i + 1, input=error.input, prediction=error.prediction, actual=error.actual)
                         for i, error in enumerate(error_sample)
                     ]
                 )

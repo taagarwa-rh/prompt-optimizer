@@ -51,7 +51,7 @@ class Prompt(BaseModel):
             Defaults to None.
         errors (list[PredictionError]):
             List of errors caught during evaluation. This is required for some
-            optimizers. Defaults to None.
+            optimizers. You can provide multiple errors per input. Defaults to None.
         metadata (dict[str, Any], optional):
             Optional metadata to associate with the prompt. Some optimizers
             also store variables here, each prefixed by `_`. Defaults to None.

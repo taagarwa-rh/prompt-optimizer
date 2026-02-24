@@ -163,7 +163,12 @@ class ProtegiOptimizer(BaseOptimizer):
         for prompt in track(prompts, description="Generating prompt candidates", transient=True):
             # Build error string
             error_string = "\n\n".join(
-                [f"Input: {error.input}, Prediction: {error.prediction}, Actual: {error.actual}" for error in prompt.errors]
+                [
+                    f"Input: {error.input}\nPrediction: {error.prediction}\nFeedback: {error.feedback}" 
+                    if error.feedback is not None 
+                    else f"Input: {error.input}\nPrediction: {error.prediction}\nActual: {error.actual}" 
+                    for error in prompt.errors
+                ]
             )
 
             # Generate gradients
