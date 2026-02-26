@@ -69,6 +69,7 @@ def evaluator(prompt: Prompt, validation_set: list[dict]) -> list[str]:
     return score
 
 # Initialize the optimizer
+baseline_prompt = "Answer the user's questions to the best of your ability."
 optimizer = PromptAgentOptimizer(
     client=client,
     seed_prompts=[baseline_prompt],

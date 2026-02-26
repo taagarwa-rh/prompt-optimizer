@@ -49,25 +49,28 @@ from langchain_openai import ChatOpenAI
 from prompt_optimizer import Prompt
 
 
-def evaluator(prompt: Prompt, validation_set: list[dict]) -> float:
+def evaluator(prompt: Prompt, validation_set: list[dict]) -> list[str]:
     """Prompt evaluator function."""
+    # Run the prompt through the AI system
     predictions = []
     num_correct = 0
-    llm = ChatOpenAI(model="gpt-5")
+    agent = ChatOpenAI(model="gpt-5", temperature=0.1)
     for row in validation_set:
-        # Get the prediction from your system
-        question = row["question"]
+        question = row["input"]
         messages = [{"role": "system", "content": prompt.content}, {"role": "user", "content": question}]
-        response = llm.invoke(messages)
+        response = agent.invoke(messages)
         prediction = response.content.strip()
         predictions.append(prediction)
-
-        # Reward exact matches
-        actual = row["answer"]
+    
+        # Reward exact matches and collect errors
+        actual = row["target"]
         if actual == prediction:
             num_correct += 1
         else:
             num_correct += 0
+            # Save prediction error - Required for some optimizers
+            error = PredictionError(input=question, prediction=prediction, actual=actual, feedback=None)
+            prompt.errors.append(error)
     
     # Compute the score
     score = num_correct / len(validation_set)
@@ -85,10 +88,37 @@ Once you have your **validation set** and **evaluator** defined, you can set up 
 
 Select one of the available optimizers to learn more about its usage:
 
-- [OPRO](./library/optimizers/opro.md) (Recommended)
-- [PromptAgent](./library/optimizers/promptagent.md)
+- [PromptAgent](./library/optimizers/promptagent.md) (Recommended)
+- [OPRO](./library/optimizers/opro.md)
 - [ProTeGi](./library/optimizers/protegi.md)
 - [APE](./library/optimizers/ape.md)
+
+For example, **PromptAgent** usage looks like:
+
+```py
+from lagnchain_openai import ChatOpenAI
+from prompt_optimizer.optimizers import PromptAgentOptimizer
+
+# A langchain ChatModel for generating new prompts
+client = ChatOpenAI(model="gpt-5", temperature=0.7)
+
+# Initialize the optimizer
+baseline_prompt = "Answer the user's questions to the best of your ability."
+optimizer = PromptAgentOptimizer(
+    client=client,
+    seed_prompts=[baseline_prompt],
+    validation_set=validation_set,
+    max_depth=3,
+    evaluator=evaluator,
+)
+
+# Run the optimization
+optimized_prompt = optimizer.run()
+
+# Print the optimized prompt
+print(optimized_prompt.content)
+# "Provide a simple answer to the user's question. Use as few words as possible."
+```
 
 ## Citations
 
