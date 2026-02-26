@@ -88,10 +88,10 @@ Once you have your **validation set** and **evaluator** defined, you can set up 
 
 Select one of the available optimizers to learn more about its usage:
 
-- [PromptAgent](./library/optimizers/promptagent.md) (Recommended)
-- [OPRO](./library/optimizers/opro.md)
-- [ProTeGi](./library/optimizers/protegi.md)
-- [APE](./library/optimizers/ape.md)
+- [PromptAgent](./optimizers/promptagent.md) (Recommended)
+- [OPRO](./optimizers/opro.md)
+- [ProTeGi](./optimizers/protegi.md)
+- [APE](./optimizers/ape.md)
 
 For example, **PromptAgent** usage looks like:
 
