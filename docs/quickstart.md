@@ -101,7 +101,9 @@ print(optimized_prompt.content)
 # "Provide a simple answer to the user's question. Use as few words as possible."
 ```
 
-View any of the available optimizers to learn more about its usage:
+## Next Steps
+
+Check out the available optimizers to learn more about their capabilities and usage:
 
 - [PromptAgent](./optimizers/promptagent.md) (Recommended)
 - [OPRO](./optimizers/opro.md)
