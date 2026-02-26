@@ -77,7 +77,7 @@ Once you have your **validation set** and **evaluator** defined, you can set up 
 We'll use **PromptAgent** to optimize our prompt:
 
 ```py
-from lagnchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from prompt_optimizer.optimizers import PromptAgentOptimizer
 
 # A langchain ChatModel for generating new prompts
