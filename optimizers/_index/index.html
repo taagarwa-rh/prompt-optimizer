@@ -507,48 +507,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Comparison of Algorithms">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ape" class="md-nav__link">
-    <span class="md-ellipsis">
-      APE
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#opro" class="md-nav__link">
-    <span class="md-ellipsis">
-      OPRO
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#protegi" class="md-nav__link">
-    <span class="md-ellipsis">
-      ProTeGi
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#promptagent" class="md-nav__link">
-    <span class="md-ellipsis">
-      PromptAgent
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
     </ul>
@@ -715,48 +673,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Comparison of Algorithms">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ape" class="md-nav__link">
-    <span class="md-ellipsis">
-      APE
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#opro" class="md-nav__link">
-    <span class="md-ellipsis">
-      OPRO
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#protegi" class="md-nav__link">
-    <span class="md-ellipsis">
-      ProTeGi
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#promptagent" class="md-nav__link">
-    <span class="md-ellipsis">
-      PromptAgent
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
     </ul>
@@ -796,72 +712,50 @@ This means the prompts from these algorithms should get progressively better wit
 <p>The next section covers these differences in more detail for the algorithms implemented in this package.</p>
 <p><img alt="" src="../static/apo_taxonomy.png" /></p>
 <h2 id="comparison-of-algorithms">Comparison of Algorithms</h2>
-<h3 id="ape">APE</h3>
-<ol>
-<li>Seed Prompt Initialization</li>
-<li>Generate multiple seed prompts using samples from the validation set</li>
-<li>Candidate Prompt Generation</li>
-<li>Generate variations of previous generation</li>
-<li>Inference Evaluation &amp; Feedback</li>
-<li>Score the new prompts against the validation set</li>
-<li>Filter &amp; Retain Promising Prompts</li>
-<li>Select and keep the top k_percent of prompts for the next generation</li>
-<li>Exit Criteria</li>
-<li>Score exceeds score threshold, or </li>
-<li>Maximum iterations are reached</li>
-</ol>
-<h3 id="opro">OPRO</h3>
-<ol>
-<li>Seed Prompt Initialization</li>
-<li>Use a user-provided seed prompt</li>
-<li>Candidate Prompt Generation</li>
-<li>Generate new prompts using scored prompt candidates and a random sample from the validation set</li>
-<li>Scored prompts are sorted by score to demonstrate a prompt trajectory</li>
-<li>Inference Evaluation &amp; Feedback</li>
-<li>Score the new prompts against the validation set</li>
-<li>Filter &amp; Retain Promising Prompts</li>
-<li>Keep all prompts for the next generation</li>
-<li>Exit Criteria</li>
-<li>Score exceeds score threshold, or </li>
-<li>Maximum iterations are reached</li>
-</ol>
-<h3 id="protegi">ProTeGi</h3>
-<ol>
-<li>Seed Prompt Initialization</li>
-<li>Use a user-provided seed prompt</li>
-<li>Collect inference errors</li>
-<li>Candidate Prompt Generation</li>
-<li>Generate error feedback</li>
-<li>Generate new prompts using the generated feedback</li>
-<li>Inference Evaluation &amp; Feedback</li>
-<li>Score the new prompts against the validation set</li>
-<li>Collect inference errors</li>
-<li>Filter &amp; Retain Promising Prompts</li>
-<li>Beam: Keep only the best prompt</li>
-<li>Greedy: Keep all prompts</li>
-<li>Exit Criteria</li>
-<li>Score exceeds score threshold, or </li>
-<li>Maximum iterations are reached</li>
-</ol>
-<h3 id="promptagent">PromptAgent</h3>
-<ol>
-<li>Seed Prompt Initialization</li>
-<li>Use a user-provided seed prompt</li>
-<li>Collect inference errors</li>
-<li>Candidate Prompt Generation</li>
-<li>Generate error feedback</li>
-<li>Get prompt trajectory by following parents back to the seed prompt</li>
-<li>Generate new prompts using the prompt trajectory and generated feedback</li>
-<li>Inference Evaluation &amp; Feedback</li>
-<li>Score the new prompts against the validation set</li>
-<li>Collect inference errors</li>
-<li>Filter &amp; Retain Promising Prompts</li>
-<li>Beam: Keep the best prompt from each branch</li>
-<li>Greedy: Keep all prompts</li>
-<li>Exit Criteria</li>
-<li>Score exceeds score threshold, or </li>
-<li>Maximum iterations are reached</li>
-</ol>
+<table>
+    <tr>
+        <th>Step</th>
+        <th>APE</th>
+        <th>OPRO</th>
+        <th>ProTeGi</th>
+        <th>PromptAgent</th>
+    </tr>
+    <tr>
+        <td>Seed Prompt Initialization</td>
+        <td><li>Generate multiple seed prompts using samples from the validation set</li></td>
+        <td><li>Use a user-provided seed prompt</li></td>
+        <td><li>Use a user-provided seed prompt</li><li>Collect inference errors</li></td>
+        <td><li>Use a user-provided seed prompt</li><li>Collect inference errors</li></td>
+    </tr>
+    <tr>
+        <td>Candidate Prompt Generation</td>
+        <td><li>Generate variations of previous prompts</li></td>
+        <td><li>Generate new prompts using scored prompt candidates and a random sample from the validation set</li><li>Scored prompts are sorted by score to demonstrate a prompt trajectory</li></td>
+        <td><li>Generate error feedback</li><li>Generate new prompts using the generated feedback</li></td>
+        <td><li>Generate error feedback</li><li>Get prompt trajectory along branch</li><li>Generate new prompts using the prompt trajectory and generated feedback</li></td>
+    </tr>
+    <tr>
+        <td>Inference Evaluation & Feedback</td>
+        <td><li>Score the new prompts against the validation set</li></td>
+        <td><li>Score the new prompts against the validation set</li></td>
+        <td><li>Score the new prompts against the validation set</li><li>Collect inference errors</li></td>
+        <td><li>Score the new prompts against the validation set</li><li>Collect inference errors</li></td>
+    </tr>
+    <tr>
+        <td>Filter & Retain Promising Prompts</td>
+        <td><li>Select and keep the top k_percent of prompts for the next generation</li></td>
+        <td><li>Keep all prompts for the next generation</li></td>
+        <td><li>Beam: Keep only the best prompt</li><li>Greedy: Keep all prompts</li></td>
+        <td><li>Beam: Keep the best prompt from each branch</li><li>Greedy: Keep all prompts</li></td>
+    </tr>
+    <tr>
+        <td>Exit Criteria</td>
+        <td><li>Score exceeds score threshold, or</li><li>Maximum iterations are reached</li></td>
+        <td><li>Score exceeds score threshold, or</li><li>Maximum iterations are reached</li></td>
+        <td><li>Score exceeds score threshold, or</li><li>Maximum iterations are reached</li></td>
+        <td><li>Score exceeds score threshold, or</li><li>Maximum iterations are reached</li></td>
+    </tr>
+</table>
 
 
 
