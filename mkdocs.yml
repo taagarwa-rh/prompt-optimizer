@@ -29,6 +29,18 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
 
+nav:
+  - Home:
+    - Home: index.md
+    - Quickstart: quickstart.md
+  - Optimizers:
+    - optimizers/_index.md
+    - optimizers/_benchmarks.md
+    - optimizers/ape.md
+    - optimizers/opro.md
+    - optimizers/promptagent.md
+    - optimizers/protegi.md
+
 plugins:
 - search
 - mkdocstrings:

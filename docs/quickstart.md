@@ -103,7 +103,9 @@ print(optimized_prompt.content)
 
 ## Next Steps
 
-Check out the available optimizers to learn more about their capabilities and usage:
+Read the [Overview](./optimizers/_index.md) to get an understanding of APO and the different algorithms.
+
+Then, check out the available optimizers to learn more about their capabilities and usage:
 
 - [PromptAgent](./optimizers/promptagent.md) (Recommended)
 - [OPRO](./optimizers/opro.md)

@@ -7,8 +7,8 @@ Improve your prompts with any LLM using Automatic Prompt Optimization (APO).
 ![](./static/apo.png)
 <center><small>From <i>"A Systematic Survey of Automatic Prompt Optimization Techniques"</i></small></center>
 
-Automatic prompt optimization (APO) is a reinforcement learning technique to improve prompt performance.
-At each iteration, new prompts are generated and scored against your AI system using your validation set.
+Automatic prompt optimization (APO) is a reinforcement learning technique used to improve task performance for AI language models.
+At each iteration, new instruction prompts are generated and scored against your AI system using your validation set.
 Promising prompts are kept and used to seed the next generation of prompts.
 The goal is to find the prompt that maximizes the AI system's performance on the evaluation metric you define.
 
