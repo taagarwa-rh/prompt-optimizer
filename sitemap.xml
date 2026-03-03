@@ -2,26 +2,34 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://taagarwa-rh.github.io/prompt-optimizer/</loc>
-         <lastmod>2026-02-26</lastmod>
+         <lastmod>2026-03-03</lastmod>
     </url>
     <url>
          <loc>https://taagarwa-rh.github.io/prompt-optimizer/quickstart/</loc>
-         <lastmod>2026-02-26</lastmod>
+         <lastmod>2026-03-03</lastmod>
+    </url>
+    <url>
+         <loc>https://taagarwa-rh.github.io/prompt-optimizer/optimizers/_benchmarks/</loc>
+         <lastmod>2026-03-03</lastmod>
+    </url>
+    <url>
+         <loc>https://taagarwa-rh.github.io/prompt-optimizer/optimizers/_index/</loc>
+         <lastmod>2026-03-03</lastmod>
     </url>
     <url>
          <loc>https://taagarwa-rh.github.io/prompt-optimizer/optimizers/ape/</loc>
-         <lastmod>2026-02-26</lastmod>
+         <lastmod>2026-03-03</lastmod>
     </url>
     <url>
          <loc>https://taagarwa-rh.github.io/prompt-optimizer/optimizers/opro/</loc>
-         <lastmod>2026-02-26</lastmod>
+         <lastmod>2026-03-03</lastmod>
     </url>
     <url>
          <loc>https://taagarwa-rh.github.io/prompt-optimizer/optimizers/promptagent/</loc>
-         <lastmod>2026-02-26</lastmod>
+         <lastmod>2026-03-03</lastmod>
     </url>
     <url>
          <loc>https://taagarwa-rh.github.io/prompt-optimizer/optimizers/protegi/</loc>
-         <lastmod>2026-02-26</lastmod>
+         <lastmod>2026-03-03</lastmod>
     </url>
 </urlset>
